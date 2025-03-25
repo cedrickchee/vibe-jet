@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly MMO</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: monospace;
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        Speed: <span id="speed">0</span> km/h<br>
+        Altitude: <span id="altitude">0</span> m<br>
+        Players: <span id="players-count">1</span>
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        // import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // Optional for debugging
+
+        // --- Configuration ---
+        const WEBSOCKET_URL = 'ws://localhost:8080'; // Adjust if your server is elsewhere
+        const PLAYER_SPEED = 50.0; // Base speed units/sec
+        const AFTERBURNER_MULTIPLIER = 3.0;
+        const ROLL_SPEED = Math.PI * 1.0; // Radians per second
+        const PITCH_SPEED = Math.PI * 0.8; // Radians per second
+        const YAW_SPEED = Math.PI * 0.5; // Radians per second
+        const DAMPING = 0.95; // Velocity damping factor
+        const CAMERA_BASE_FOV = 75;
+        const CAMERA_MAX_FOV_BOOST = 25; // Additional FOV at max speed boost
+        const UPDATE_INTERVAL_MS = 100; // Send updates every 100ms (10 Hz)
+        const GROUND_SIZE = 5000;
+        const BUILDING_COUNT = 300;
+        const MAX_BUILDING_HEIGHT = 400;
+        const MIN_BUILDING_HEIGHT = 50;
+        const STAR_COUNT = 5000;
+        const DAY_NIGHT_CYCLE_MINUTES = 5; // Duration of a full day/night cycle
+
+        // --- Global Variables ---
+        let scene, camera, renderer, clock, skyLight, sunLight;
+        let playerAircraft, playerVelocity, playerAngularVelocity;
+        let controls = { forward: 0, backward: 0, left: 0, right: 0, up: 0, down: 0, boost: 0 };
+        let ws;
+        let playerId = null;
+        let otherPlayers = new Map(); // Map<playerId, { mesh: THREE.Mesh, lastUpdate: number }>
+        let buildingBoundingBoxes = [];
+        let lastUpdateTime = 0;
+        let isColliding = false;
+        let sunAngle = Math.PI / 4; // Start in morning/afternoon
+
+        // --- Initialization ---
+        function init() {
+            // Basic Setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(CAMERA_BASE_FOV, window.innerWidth / window.innerHeight, 0.1, 20000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+            document.body.appendChild(renderer.domElement);
+            clock = new THREE.Clock();
+
+            // Lighting (Day/Night)
+            skyLight = new THREE.HemisphereLight(0x87ceeb, 0x000000, 0.6); // Sky, Ground, Intensity
+            scene.add(skyLight);
+
+            sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            sunLight.position.set(0, 1000, 1000); // Initial position
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048; // Higher resolution shadows
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 100;
+            sunLight.shadow.camera.far = 5000;
+            sunLight.shadow.camera.left = -GROUND_SIZE / 2;
+            sunLight.shadow.camera.right = GROUND_SIZE / 2;
+            sunLight.shadow.camera.top = GROUND_SIZE / 2;
+            sunLight.shadow.camera.bottom = -GROUND_SIZE / 2;
+            scene.add(sunLight);
+            scene.add(sunLight.target); // Important for directional light targeting
+
+            // Fog
+            scene.fog = new THREE.Fog(0xcccccc, 1000, 15000);
+
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE);
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Buildings
+            createBuildings();
+
+            // Stars
+            createStars();
+
+            // Player Aircraft
+            createPlayerAircraft();
+
+            // Controls Setup
+            setupControls();
+
+            // WebSocket Setup
+            setupWebSocket();
+
+            // Handle Window Resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Start Animation Loop
+            animate();
+        }
+
+        function createBuildings() {
+            const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.8, metalness: 0.2 });
+            const buildingGeometry = new THREE.BoxGeometry(1, 1, 1); // Base geometry
+
+            for (let i = 0; i < BUILDING_COUNT; i++) {
+                const height = Math.random() * (MAX_BUILDING_HEIGHT - MIN_BUILDING_HEIGHT) + MIN_BUILDING_HEIGHT;
+                const width = Math.random() * 40 + 20;
+                const depth = Math.random() * 40 + 20;
+
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial.clone()); // Clone material if needed
+                building.scale.set(width, height, depth);
+
+                const x = (Math.random() - 0.5) * (GROUND_SIZE * 0.9); // Keep away from edge slightly
+                const z = (Math.random() - 0.5) * (GROUND_SIZE * 0.9);
+                building.position.set(x, height / 2, z);
+
+                building.castShadow = true;
+                building.receiveShadow = true;
+                scene.add(building);
+
+                // Store bounding box for collision
+                const box = new THREE.Box3().setFromObject(building);
+                buildingBoundingBoxes.push(box);
+            }
+        }
+
+        function createStars() {
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, sizeAttenuation: true });
+            const starVertices = [];
+            for (let i = 0; i < STAR_COUNT; i++) {
+                const x = (Math.random() - 0.5) * 15000;
+                const y = Math.random() * 5000 + 500; // Keep stars above a certain height
+                const z = (Math.random() - 0.5) * 15000;
+                // Ensure stars are far enough away
+                if(Math.sqrt(x*x + y*y + z*z) > 1000) {
+                     starVertices.push(x, y, z);
+                } else {
+                    i--; // retry if too close
+                }
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+        }
+
+
+        function createPlayerAircraft() {
+            // Simple cone shape for the aircraft body
+            const geometry = new THREE.ConeGeometry(2, 8, 8); // Radius, Height, Segments
+            geometry.rotateX(Math.PI / 2); // Point forward along Z
+            const material = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x330000 });
+            playerAircraft = new THREE.Mesh(geometry, material);
+            playerAircraft.position.set(0, 50, 0); // Start above ground
+            playerAircraft.castShadow = true;
+            scene.add(playerAircraft);
+
+            // Initialize physics variables
+            playerVelocity = new THREE.Vector3();
+            playerAngularVelocity = new THREE.Vector3();
+
+            // Attach camera to the player (adjust offset as needed)
+            camera.position.set(0, 3, -10); // Behind and slightly above
+            playerAircraft.add(camera);
+        }
+
+        function setupControls() {
+            document.addEventListener('keydown', (event) => {
+                switch(event.code) {
+                    case 'KeyW': case 'ArrowUp':    controls.forward = 1; break;
+                    case 'KeyS': case 'ArrowDown':  controls.backward = 1; break; // Optional: Brake/Reverse?
+                    case 'KeyA': case 'ArrowLeft':  controls.left = 1; break; // Yaw left
+                    case 'KeyD': case 'ArrowRight': controls.right = 1; break; // Yaw right
+                    case 'KeyQ':                    controls.rollLeft = 1; break; // Roll left
+                    case 'KeyE':                    controls.rollRight = 1; break; // Roll right
+                    case 'ShiftLeft': case 'ShiftRight': controls.boost = 1; break;
+                    case 'ControlLeft': case 'ControlRight': controls.down = 1; break; // Pitch down
+                    case 'Space':                   controls.up = 1; break;     // Pitch up
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                 switch(event.code) {
+                    case 'KeyW': case 'ArrowUp':    controls.forward = 0; break;
+                    case 'KeyS': case 'ArrowDown':  controls.backward = 0; break;
+                    case 'KeyA': case 'ArrowLeft':  controls.left = 0; break;
+                    case 'KeyD': case 'ArrowRight': controls.right = 0; break;
+                    case 'KeyQ':                    controls.rollLeft = 0; break;
+                    case 'KeyE':                    controls.rollRight = 0; break;
+                    case 'ShiftLeft': case 'ShiftRight': controls.boost = 0; break;
+                    case 'ControlLeft': case 'ControlRight': controls.down = 0; break;
+                    case 'Space':                   controls.up = 0; break;
+                }
+            });
+        }
+
+        function setupWebSocket() {
+            ws = new WebSocket(WEBSOCKET_URL);
+
+            ws.onopen = () => {
+                console.log('WebSocket connection established');
+                // Maybe request initial game state or player ID here if needed
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    // console.log('Message from server:', message);
+
+                    switch(message.type) {
+                        case 'assign_id':
+                            playerId = message.id;
+                            console.log('Assigned player ID:', playerId);
+                            break;
+                        case 'player_update':
+                            if (message.id !== playerId) { // Update other players
+                                updateOtherPlayer(message.id, message.data);
+                            }
+                            break;
+                        case 'player_join':
+                            if (message.id !== playerId) {
+                                console.log('Player joined:', message.id);
+                                addOtherPlayer(message.id, message.data);
+                            }
+                            break;
+                        case 'player_leave':
+                            if (otherPlayers.has(message.id)) {
+                                console.log('Player left:', message.id);
+                                removeOtherPlayer(message.id);
+                            }
+                            break;
+                         case 'world_state': // Initial state for newly joined player
+                            message.players.forEach(playerData => {
+                                if (playerData.id !== playerId) {
+                                    addOtherPlayer(playerData.id, playerData.data);
+                                }
+                            });
+                            break;
+                        default:
+                            console.log('Unknown message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('Failed to parse message or process:', error);
+                }
+                updatePlayerCount();
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                displayError("Connection error. Please refresh.");
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket connection closed');
+                playerId = null;
+                // Clear other players? Or show they disconnected?
+                otherPlayers.forEach(player => scene.remove(player.mesh));
+                otherPlayers.clear();
+                updatePlayerCount();
+                displayError("Disconnected. Please refresh.");
+            };
+        }
+
+        function displayError(message) {
+             const errorDiv = document.createElement('div');
+             errorDiv.style.position = 'absolute';
+             errorDiv.style.top = '50%';
+             errorDiv.style.left = '50%';
+             errorDiv.style.transform = 'translate(-50%, -50%)';
+             errorDiv.style.color = 'red';
+             errorDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
+             errorDiv.style.padding = '20px';
+             errorDiv.style.fontSize = '20px';
+             errorDiv.style.fontFamily = 'monospace';
+             errorDiv.textContent = message;
+             document.body.appendChild(errorDiv);
+        }
+
+        function addOtherPlayer(id, data) {
+            if (otherPlayers.has(id)) return; // Already exists
+
+            // Use the same geometry/material for now, maybe different color later
+            const geometry = new THREE.ConeGeometry(2, 8, 8);
+            geometry.rotateX(Math.PI / 2);
+            const material = new THREE.MeshStandardMaterial({ color: 0x0000ff }); // Blue for others
+            const otherAircraft = new THREE.Mesh(geometry, material);
+            otherAircraft.castShadow = true; // Other players cast shadows too
+
+            if (data) {
+                 otherAircraft.position.fromArray(data.position);
+                 otherAircraft.quaternion.fromArray(data.quaternion);
+            }
+
+            scene.add(otherAircraft);
+            otherPlayers.set(id, { mesh: otherAircraft, lastUpdate: Date.now() });
+            console.log(`Added player ${id} to scene.`);
+            updatePlayerCount();
+        }
+
+        function updateOtherPlayer(id, data) {
+            const player = otherPlayers.get(id);
+            if (player) {
+                // Simple interpolation could be added here for smoother movement
+                player.mesh.position.fromArray(data.position);
+                player.mesh.quaternion.fromArray(data.quaternion);
+                player.lastUpdate = Date.now();
+            } else {
+                // If we receive an update for a player we don't know, add them
+                addOtherPlayer(id, data);
+            }
+        }
+
+        function removeOtherPlayer(id) {
+            const player = otherPlayers.get(id);
+            if (player) {
+                scene.remove(player.mesh);
+                otherPlayers.delete(id);
+                console.log(`Removed player ${id} from scene.`);
+                updatePlayerCount();
+            }
+        }
+
+        // --- Game Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const deltaTime = clock.getDelta();
+
+            updatePlayerMovement(deltaTime);
+            updateCameraFOV();
+            updateDayNightCycle(deltaTime);
+            checkCollisions();
+
+            // Send player state periodically
+            const now = Date.now();
+            if (ws && ws.readyState === WebSocket.OPEN && playerId && now - lastUpdateTime > UPDATE_INTERVAL_MS) {
+                sendPlayerUpdate();
+                lastUpdateTime = now;
+            }
+
+            renderer.render(scene, camera);
+            updateInfoPanel();
+        }
+
+        function updatePlayerMovement(deltaTime) {
+            if (!playerAircraft) return;
+
+            const currentSpeed = playerVelocity.length();
+            const maxSpeed = PLAYER_SPEED * (controls.boost ? AFTERBURNER_MULTIPLIER : 1.0);
+
+            // --- Calculate Forces/Torques ---
+            let thrust = controls.forward ? PLAYER_SPEED * 5.0 : 0; // Acceleration force
+            thrust = thrust * (controls.boost ? AFTERBURNER_MULTIPLIER : 1.0);
+            // Optional: Add braking force if controls.backward is used
+            // if (controls.backward) thrust = -PLAYER_SPEED * 2.0;
+
+            let targetPitch = 0;
+            if (controls.up) targetPitch = PITCH_SPEED;
+            if (controls.down) targetPitch = -PITCH_SPEED;
+
+            let targetYaw = 0;
+            if (controls.left) targetYaw = YAW_SPEED;
+            if (controls.right) targetYaw = -YAW_SPEED;
+
+            let targetRoll = 0;
+            if (controls.rollLeft) targetRoll = ROLL_SPEED;
+            if (controls.rollRight) targetRoll = -ROLL_SPEED;
+
+            // --- Apply Angular Velocity ---
+            // Simple angular acceleration based on input
+            playerAngularVelocity.x += (targetPitch - playerAngularVelocity.x) * deltaTime * 5.0; // Pitch
+            playerAngularVelocity.y += (targetYaw - playerAngularVelocity.y) * deltaTime * 5.0;   // Yaw
+            playerAngularVelocity.z += (targetRoll - playerAngularVelocity.z) * deltaTime * 5.0; // Roll
+
+            // Apply damping to angular velocity
+            playerAngularVelocity.multiplyScalar(DAMPING);
+
+            // --- Apply Rotation ---
+            const deltaRotation = playerAngularVelocity.clone().multiplyScalar(deltaTime);
+            const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaRotation.x);
+            const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaRotation.y);
+            const qz = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), deltaRotation.z);
+
+            // Apply rotations in aircraft's local frame
+            playerAircraft.quaternion.multiply(qx).multiply(qy).multiply(qz).normalize();
+
+
+            // --- Apply Linear Velocity ---
+            const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(playerAircraft.quaternion);
+            const acceleration = forwardVector.multiplyScalar(thrust * deltaTime);
+
+            playerVelocity.add(acceleration);
+
+            // Apply damping/drag
+            const dragFactor = 1.0 - (0.5 * deltaTime); // Simple linear drag
+            playerVelocity.multiplyScalar(dragFactor);
+
+            // Clamp speed
+            if (playerVelocity.lengthSq() > maxSpeed * maxSpeed) {
+                playerVelocity.normalize().multiplyScalar(maxSpeed);
+            }
+
+             // Minimum speed to prevent floating still
+            const MIN_SPEED = 5.0;
+            if (currentSpeed < MIN_SPEED && thrust === 0) {
+                 playerVelocity.multiplyScalar(0.9); // Slow down faster when idle and slow
+                 if (currentSpeed < 0.1) playerVelocity.set(0,0,0);
+            }
+
+
+            // --- Update Position ---
+            const deltaPosition = playerVelocity.clone().multiplyScalar(deltaTime);
+            playerAircraft.position.add(deltaPosition);
+
+            // --- Ground Collision (Simple) ---
+            const groundLevel = 0; // Or terrain height at this position
+            if (playerAircraft.position.y < groundLevel + 1) { // +1 for aircraft size buffer
+                playerAircraft.position.y = groundLevel + 1;
+                playerVelocity.y = Math.max(0, playerVelocity.y * -0.5); // Bounce slightly
+            }
+        }
+
+        function updateCameraFOV() {
+            const speedRatio = playerVelocity.length() / (PLAYER_SPEED * AFTERBURNER_MULTIPLIER);
+            const targetFOV = CAMERA_BASE_FOV + speedRatio * CAMERA_MAX_FOV_BOOST;
+            // Smooth FOV change
+            camera.fov += (targetFOV - camera.fov) * 0.1;
+            camera.updateProjectionMatrix();
+        }
+
+        function updateDayNightCycle(deltaTime) {
+            const cycleSpeed = (2 * Math.PI) / (DAY_NIGHT_CYCLE_MINUTES * 60); // Radians per second
+            sunAngle += cycleSpeed * deltaTime;
+            sunAngle %= (2 * Math.PI); // Keep angle between 0 and 2PI
+
+            const sunY = Math.sin(sunAngle);
+            const sunX = Math.cos(sunAngle);
+
+            sunLight.position.set(sunX * 1500, sunY * 1000, 1000); // Adjust Z for angled light
+            sunLight.target.position.set(0, 0, 0); // Keep light focused on the center
+
+            // Adjust light intensity and colors based on sun angle
+            if (sunY > 0) { // Daytime
+                const intensity = Math.max(0.1, sunY) * 1.5; // Brighter during day, min intensity
+                sunLight.intensity = intensity;
+                skyLight.intensity = Math.max(0.2, sunY * 0.6); // Ambient light stronger during day
+                sunLight.color.setHSL(0.1, 1, Math.max(0.5, sunY)); // Yellowish sun
+                skyLight.color.setHSL(0.6, 0.6, Math.max(0.3, sunY * 0.7)); // Bluish sky
+                scene.fog.color.setHSL(0.6, 0.3, Math.max(0.6, sunY * 0.8)); // Lighter fog
+                scene.fog.near = 1000 + (1-sunY) * 2000; // Fog denser near horizon at dawn/dusk
+                scene.fog.far = 15000 - (1-sunY) * 5000;
+                renderer.setClearColor(skyLight.color); // Match background to sky
+            } else { // Nighttime
+                sunLight.intensity = 0; // Sun off
+                skyLight.intensity = 0.1 + Math.abs(sunY) * 0.1; // Dim ambient from moon/stars
+                skyLight.color.setHSL(0.6, 0.3, 0.1); // Dark blue night sky
+                scene.fog.color.setHSL(0.6, 0.1, 0.05); // Darker fog
+                scene.fog.near = 500;
+                scene.fog.far = 8000;
+                 renderer.setClearColor(0x000011); // Dark night background
+            }
+             // Moon (could be another light source or just affect ambient)
+             // For simplicity, we are just using the skyLight for night ambient
+        }
+
+
+        function checkCollisions() {
+            if (!playerAircraft) return false;
+
+            const playerBox = new THREE.Box3().setFromObject(playerAircraft);
+            isColliding = false; // Reset collision state
+
+            for (const buildingBox of buildingBoundingBoxes) {
+                if (playerBox.intersectsBox(buildingBox)) {
+                    // --- Collision Response ---
+                    // Simple response: Stop movement towards the building
+                    isColliding = true;
+
+                    // Find collision normal (approximate)
+                    const playerCenter = new THREE.Vector3();
+                    playerBox.getCenter(playerCenter);
+                    const buildingCenter = new THREE.Vector3();
+                    buildingBox.getCenter(buildingCenter);
+
+                    const collisionNormal = playerCenter.sub(buildingCenter).normalize();
+
+                    // Reflect velocity (basic bounce) - needs refinement for better feel
+                    const speed = playerVelocity.length();
+                    if (speed > 1.0) { // Only reflect if moving significantly
+                         playerVelocity.reflect(collisionNormal).multiplyScalar(0.5); // Lose half speed on impact
+                    } else {
+                        playerVelocity.set(0,0,0); // Stop if moving slowly
+                    }
+
+                     // Push player slightly out of the building to prevent sticking
+                    const pushOut = collisionNormal.multiplyScalar(1.0);
+                    playerAircraft.position.add(pushOut);
+
+                    // Maybe add visual/audio feedback for collision here
+
+                    // For this simple check, stop after first collision found in a frame
+                    break;
+                }
+            }
+            // Could change aircraft material color on collision for visual feedback
+            playerAircraft.material.emissive.setHex(isColliding ? 0x550000 : 0x330000);
+
+            return isColliding;
+        }
+
+
+        function sendPlayerUpdate() {
+            if (!playerAircraft || !playerId) return;
+
+            const data = {
+                position: playerAircraft.position.toArray(),
+                quaternion: playerAircraft.quaternion.toArray(),
+                // Optional: Send velocity, boost state etc. if needed server-side
+                // velocity: playerVelocity.toArray(),
+                // boosting: controls.boost === 1
+            };
+
+            const message = {
+                type: 'player_update',
+                id: playerId, // Send own ID
+                data: data
+            };
+
+            try {
+                ws.send(JSON.stringify(message));
+            } catch (error) {
+                 console.error("Failed to send update:", error);
+            }
+        }
+
+        function updateInfoPanel() {
+            const speedKmh = playerVelocity.length() * 3.6; // Example conversion factor
+            const altitude = playerAircraft.position.y;
+            document.getElementById('speed').textContent = speedKmh.toFixed(0);
+            document.getElementById('altitude').textContent = altitude.toFixed(1);
+            // Player count updated in WebSocket handlers
+        }
+
+         function updatePlayerCount() {
+            document.getElementById('players-count').textContent = otherPlayers.size + 1; // +1 for self
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Start the game ---
+        init();
+
+    </script>
+</body>
+</html>
