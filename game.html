@@ -19,6 +19,9 @@
     </style>
 </head>
 <body>
+    <div id="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px; font-family: monospace; background-color: rgba(0,0,0,0.7); padding: 20px; border-radius: 5px; display: none;">
+        Loading Model...
+    </div>
     <div id="info">
         Speed: <span id="speed">0</span> km/h<br>
         Altitude: <span id="altitude">0</span> m<br>
@@ -34,6 +37,7 @@
     </script>
     <script type="module">
         import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         // import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // Optional for debugging
 
         // --- Configuration ---
@@ -53,10 +57,15 @@
         const MIN_BUILDING_HEIGHT = 50;
         const STAR_COUNT = 5000;
         const DAY_NIGHT_CYCLE_MINUTES = 5; // Duration of a full day/night cycle
+        // const MODEL_URL = 'https://unpkg.com/three@0.162.0/examples/models/gltf/Flamingo.glb'; // <-- REPLACE WITH YOUR AIRCRAFT MODEL URL (.glb/.gltf)
+        const MODEL_URL = 'Flamingo.glb'; // <-- Use local filename
+        const MODEL_SCALE = 0.1; // <-- ADJUST THIS scale to fit your model size
+        const OTHER_PLAYER_COLOR = 0x00aaff; // A blue tint for other players
 
         // --- Global Variables ---
         let scene, camera, renderer, clock, skyLight, sunLight;
-        let playerAircraft, playerVelocity, playerAngularVelocity;
+        let playerAircraft = null; // Initialize as null
+        let playerVelocity, playerAngularVelocity;
         let controls = { forward: 0, backward: 0, left: 0, right: 0, up: 0, down: 0, boost: 0 };
         let ws;
         let playerId = null;
@@ -65,6 +74,9 @@
         let lastUpdateTime = 0;
         let isColliding = false;
         let sunAngle = Math.PI / 4; // Start in morning/afternoon
+        let loadedModelTemplate = null; // To store the loaded model for cloning
+        let loadingManager = null;      // Optional for loading progress
+        let loadingIndicator = null;    // Simple DOM element for loading message
 
         // --- Initialization ---
         function init() {
@@ -78,6 +90,9 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
+
+            // --- Get Loading Indicator ---
+            loadingIndicator = document.getElementById('loading-indicator');
 
             // Lighting (Day/Night)
             skyLight = new THREE.HemisphereLight(0x87ceeb, 0x000000, 0.6); // Sky, Ground, Intensity
@@ -114,6 +129,9 @@
             // Stars
             createStars();
 
+            // --- Load Assets & Initialize ---
+            loadResources(); // <--- Start loading resources
+
             // Player Aircraft
             createPlayerAircraft();
 
@@ -126,8 +144,83 @@
             // Handle Window Resize
             window.addEventListener('resize', onWindowResize, false);
 
-            // Start Animation Loop
-            animate();
+            // Start Animation Loop (will be started later in initializeGame)
+            // animate();
+        }
+
+        function showLoadingIndicator(show) {
+            if (loadingIndicator) {
+                loadingIndicator.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        function loadResources() {
+            showLoadingIndicator(true);
+            loadingManager = new THREE.LoadingManager();
+            const loader = new GLTFLoader(loadingManager);
+
+            loader.load(
+                MODEL_URL,
+                // --- Success Callback ---
+                (gltf) => {
+                    console.log("Model loaded successfully.");
+                    loadedModelTemplate = gltf.scene; // Store the loaded scene
+
+                    // --- Apply settings to the template once ---
+                    loadedModelTemplate.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+
+                    // Ensure model casts shadows (traverse the loaded scene)
+                    loadedModelTemplate.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            // Optional: Also allow receiving shadows if needed
+                            // child.receiveShadow = true;
+                        }
+                    });
+
+                    // --- IMPORTANT: Rotate template if needed ---
+                    // Models might not be oriented along +Z by default.
+                    // Add rotations here to align the template correctly. Example:
+                    // loadedModelTemplate.rotateY(Math.PI); // Rotate 180 degrees if it faces -Z
+
+                    initializeGame(); // Proceed with game setup
+                },
+                // --- Progress Callback (Optional) ---
+                (xhr) => {
+                    // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                    // You could update the loading indicator text here
+                },
+                // --- Error Callback ---
+                (error) => {
+                    console.error('An error happened during model loading:', error);
+                    showLoadingIndicator(false);
+                    displayError("Failed to load aircraft model. Please check console and refresh.");
+                }
+            );
+        }
+
+        function initializeGame() {
+            showLoadingIndicator(false); // Hide loading indicator
+            console.log("Initializing game...");
+
+            if (!loadedModelTemplate) {
+                console.error("Model template not loaded before initializing game!");
+                displayError("Initialization Error. Model not ready.");
+                return;
+            }
+
+            // --- Create Player Aircraft (now clones the loaded model) ---
+            createPlayerAircraft();
+
+            // --- Setup Controls ---
+            setupControls();
+
+            // --- WebSocket Setup ---
+            setupWebSocket();
+
+            // --- Start Animation Loop ---
+            animate(); // <-- START the loop HERE
+            console.log("Game initialized and animation loop started.");
         }
 
         function createBuildings() {
@@ -179,15 +272,32 @@
 
         function createPlayerAircraft() {
             // Simple cone shape for the aircraft body
-            const geometry = new THREE.ConeGeometry(2, 8, 8); // Radius, Height, Segments
-            geometry.rotateX(Math.PI / 2); // Point forward along Z
-            const material = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x330000 });
-            playerAircraft = new THREE.Mesh(geometry, material);
-            playerAircraft.position.set(0, 50, 0); // Start above ground
-            playerAircraft.castShadow = true;
+            // const geometry = new THREE.ConeGeometry(2, 8, 8); // Radius, Height, Segments
+            // geometry.rotateX(Math.PI / 2); // Point forward along Z
+            // const material = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x330000 });
+            // playerAircraft = new THREE.Mesh(geometry, material);
+            // playerAircraft.position.set(0, 50, 0); // Start above ground
+            // playerAircraft.castShadow = true;
+            
+            if (!loadedModelTemplate) {
+                console.error("Cannot create player aircraft, model template not loaded.");
+                return;
+            }
+            console.log("Creating player aircraft from template...");
+
+            // --- Clone the loaded model ---
+            playerAircraft = loadedModelTemplate.clone(); // Use THREE.SkeletonUtils.clone(loadedModelTemplate) if model is animated/skinned
+
+            // --- Set Initial Position ---
+            // Note: Scale and shadow settings are inherited from the template
+            playerAircraft.position.set(0, 50, 0);
+            
+            // --- Add to Scene ---
             scene.add(playerAircraft);
+            console.log("Player aircraft added to scene at", playerAircraft.position);
 
             // Initialize physics variables
+            // Ensure these are created AFTER playerAircraft is assigned
             playerVelocity = new THREE.Vector3();
             playerAngularVelocity = new THREE.Vector3();
 
@@ -310,14 +420,40 @@
         }
 
         function addOtherPlayer(id, data) {
-            if (otherPlayers.has(id)) return; // Already exists
+            if (otherPlayers.has(id) || !loadedModelTemplate) return; // Already exists or model not ready
+
+            console.log(`Adding other player ${id} from template...`);
+            const otherAircraftMesh = loadedModelTemplate.clone(); // Use THREE.SkeletonUtils.clone if needed
 
             // Use the same geometry/material for now, maybe different color later
-            const geometry = new THREE.ConeGeometry(2, 8, 8);
-            geometry.rotateX(Math.PI / 2);
-            const material = new THREE.MeshStandardMaterial({ color: 0x0000ff }); // Blue for others
-            const otherAircraft = new THREE.Mesh(geometry, material);
-            otherAircraft.castShadow = true; // Other players cast shadows too
+            // const geometry = new THREE.ConeGeometry(2, 8, 8);
+            // geometry.rotateX(Math.PI / 2);
+            // const material = new THREE.MeshStandardMaterial({ color: 0x0000ff }); // Blue for others
+            // const otherAircraft = new THREE.Mesh(geometry, material);
+            // otherAircraft.castShadow = true; // Other players cast shadows too
+
+            // Apply a visual difference (e.g., slight color tint) - This is complex
+            // and depends heavily on the model's material structure.
+            // Simple attempt: If materials are standard, try tinting.
+            otherAircraftMesh.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    if (Array.isArray(child.material)) { // Handle multi-materials
+                        child.material.forEach(mat => {
+                            if (mat.isMeshStandardMaterial) {
+                                // Create a unique material instance to avoid changing the template/other clones
+                                // Note: Cloning materials can be resource intensive
+                                // child.material = mat.clone();
+                                // child.material.color.multiplyScalar(0.7); // Example: Make it darker
+                                // A simpler tint might just modify emissive or add a colored light later
+                            }
+                        });
+                    } else if (child.material.isMeshStandardMaterial) {
+                        // child.material = child.material.clone();
+                        // child.material.color.multiplyScalar(0.7);
+                    }
+                }
+            });
+            // For now, let's skip complex material cloning/tinting and they'll look the same.
 
             if (data) {
                  otherAircraft.position.fromArray(data.position);
