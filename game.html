@@ -192,8 +192,9 @@
             playerAngularVelocity = new THREE.Vector3();
 
             // Attach camera to the player (adjust offset as needed)
-            camera.position.set(0, 3, -10); // Behind and slightly above
-            playerAircraft.add(camera);
+            // camera.position.set(0, 3, -10); // Behind and slightly above
+            // camera.position.set(0, 5, -20); // Further back (Z=-20) and slightly higher (Y=5)
+            // playerAircraft.add(camera);
         }
 
         function setupControls() {
@@ -370,6 +371,24 @@
                 lastUpdateTime = now;
             }
 
+            // --- Manual Camera Following Logic ---
+            if (playerAircraft) {
+                // Define camera offset relative to the aircraft (behind, above)
+                const relativeCameraOffset = new THREE.Vector3(0, 6, -18); // Adjust Y (height) and Z (distance) as needed
+
+                // Calculate the desired world position of the camera
+                const cameraOffset = relativeCameraOffset.applyQuaternion(playerAircraft.quaternion);
+                const desiredCameraPosition = playerAircraft.position.clone().add(cameraOffset);
+
+                // Smoothly move the camera to the desired position (lerp)
+                // Use 0.1 for smoothing, or 1.0 to snap instantly for testing
+                camera.position.lerp(desiredCameraPosition, 0.1);
+
+                // Make the camera look at a point slightly above the aircraft's center
+                const lookAtTarget = playerAircraft.position.clone().add(new THREE.Vector3(0, 1, 0)); // Look slightly above the origin
+                camera.lookAt(lookAtTarget);
+            }
+            
             renderer.render(scene, camera);
             updateInfoPanel();
         }
