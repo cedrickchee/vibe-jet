@@ -652,8 +652,13 @@
 
 
         function checkCollisions() {
-            if (!playerAircraft) return false;
-
+            // Guard against playerAircraft not being ready or not being a group with children yet
+            if (!playerAircraft || !playerAircraft.isGroup || !playerAircraft.children || playerAircraft.children.length === 0) {
+                return false; // Not ready to check collisions
+            }
+    
+            // Note: Computing bounding box every frame can be slow for complex models.
+            // Consider optimizing this later if needed.
             const playerBox = new THREE.Box3().setFromObject(playerAircraft);
             isColliding = false; // Reset collision state
 
@@ -674,7 +679,7 @@
                     // Reflect velocity (basic bounce) - needs refinement for better feel
                     const speed = playerVelocity.length();
                     if (speed > 1.0) { // Only reflect if moving significantly
-                         playerVelocity.reflect(collisionNormal).multiplyScalar(0.5); // Lose half speed on impact
+                        playerVelocity.reflect(collisionNormal).multiplyScalar(0.5); // Lose half speed on impact
                     } else {
                         playerVelocity.set(0,0,0); // Stop if moving slowly
                     }
@@ -689,8 +694,25 @@
                     break;
                 }
             }
-            // Could change aircraft material color on collision for visual feedback
-            playerAircraft.material.emissive.setHex(isColliding ? 0x550000 : 0x330000);
+
+            // Traverse the playerAircraft group to find meshes and modify their materials' emissive property
+            playerAircraft.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    // Handle both single material and array of materials
+                    const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+                    materials.forEach(mat => {
+                        // Check if the material type supports emissive (like Standard or Physical)
+                        if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
+                            // Set emissive color based on collision state
+                            // Use a brighter red for collision, black (no emission) otherwise
+                            // Note: This assumes the base color is handled by the model's texture/material.
+                            // If the loaded model isn't red, this will just add/remove a red glow.
+                            mat.emissive.setHex(isColliding ? 0xaa0000 : 0x000000);
+                        }
+                    });
+                }
+            });
 
             return isColliding;
         }
