@@ -420,7 +420,11 @@
         }
 
         function addOtherPlayer(id, data) {
-            if (otherPlayers.has(id) || !loadedModelTemplate) return; // Already exists or model not ready
+            // Don't add if player already exists or the model template isn't loaded yet
+            if (otherPlayers.has(id) || !loadedModelTemplate) {
+                // console.log(`Skipping addOtherPlayer for ${id}: Already exists or template not ready.`);
+                return;
+            }
 
             console.log(`Adding other player ${id} from template...`);
             const otherAircraftMesh = loadedModelTemplate.clone(); // Use THREE.SkeletonUtils.clone if needed
@@ -432,6 +436,8 @@
             // const otherAircraft = new THREE.Mesh(geometry, material);
             // otherAircraft.castShadow = true; // Other players cast shadows too
 
+            // Optional: Apply a visual tint or variation later if desired
+            // 
             // Apply a visual difference (e.g., slight color tint) - This is complex
             // and depends heavily on the model's material structure.
             // Simple attempt: If materials are standard, try tinting.
@@ -454,16 +460,26 @@
                 }
             });
             // For now, let's skip complex material cloning/tinting and they'll look the same.
-
-            if (data) {
-                 otherAircraft.position.fromArray(data.position);
-                 otherAircraft.quaternion.fromArray(data.quaternion);
+        
+            // Set initial position and rotation from network data if provided
+            if (data && data.position && data.quaternion) {
+                try {
+                    otherAircraftMesh.position.fromArray(data.position);
+                    otherAircraftMesh.quaternion.fromArray(data.quaternion);
+                } catch (e) {
+                    console.error(`Error setting position/quaternion for player ${id}:`, e, data);
+                }
+            } else {
+                // Place at default spawn or origin if no data provided? Or hide until first update?
+                // For now, it will appear at (0,0,0) by default if no data.
             }
 
-            scene.add(otherAircraft);
-            otherPlayers.set(id, { mesh: otherAircraft, lastUpdate: Date.now() });
+            // Add the mesh to the scene
+            scene.add(otherAircraftMesh);
+            otherPlayers.set(id, { mesh: otherAircraftMesh, lastUpdate: Date.now() });
+            
             console.log(`Added player ${id} to scene.`);
-            updatePlayerCount();
+            updatePlayerCount(); // Update the player count display
         }
 
         function updateOtherPlayer(id, data) {
