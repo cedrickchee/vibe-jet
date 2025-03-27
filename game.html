@@ -134,13 +134,11 @@
             loadResources(); // <--- Start loading resources
 
             // Player Aircraft
-            createPlayerAircraft();
-
+            // createPlayerAircraft(); // WRONG PLACE - should be in initializeGame
             // Controls Setup
-            setupControls();
-
+            // setupControls(); // WRONG PLACE - should be in initializeGame
             // WebSocket Setup
-            setupWebSocket();
+            // setupWebSocket(); // WRONG PLACE - should be in initializeGame
 
             // Handle Window Resize
             window.addEventListener('resize', onWindowResize, false);
