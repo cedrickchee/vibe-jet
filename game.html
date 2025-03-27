@@ -79,6 +79,14 @@
         const CLOUD_AREA_XZ = GROUND_SIZE * 1.5; // How far clouds spread horizontally
         const CLOUD_DRIFT_SPEED = 5.0; // How fast clouds move horizontally
         const CLOUD_TEXTURE_URL = 'cloud10.png'; // Example texture
+        // --- Road Constants ---
+        const ROAD_COUNT = 50; // Number of road segments
+        const ROAD_WIDTH = 12; // Width of the roads
+        const ROAD_MIN_LENGTH = 200;
+        const ROAD_MAX_LENGTH = 1000;
+        const ROAD_SEGMENT_LENGTH = 10; // How finely to subdivide the road mesh along its length
+        const ROAD_THICKNESS_OFFSET = 0.2; // Place roads slightly above terrain
+        const ROAD_TEXTURE_URL = 'road.jpg'; // Example texture
 
         // --- Global Variables ---
         let scene, camera, renderer, clock, skyLight, sunLight;
@@ -96,6 +104,7 @@
         let loadingManager = null;      // Optional for loading progress
         let loadingIndicator = null;    // Simple DOM element for loading message
         let clouds = null;              // Hold the Points object for animation
+        let roadTexture = null;         // To store the loaded road texture
 
         // --- Initialization ---
         function init() {
@@ -172,8 +181,82 @@
             }
         }
 
+        // Loading for the aircraft model alongside  the road texture
         function loadResources() {
             showLoadingIndicator(true);
+            // Use ONE loading manager for all resources if possible
+            loadingManager = new THREE.LoadingManager(
+                // --- Manager onLoad ---
+                () => {
+                    console.log("All resources loaded.");
+                    initializeGame(); // Initialize game ONLY after everything loads
+                },
+                // --- Manager onProgress (Optional) ---
+                (url, itemsLoaded, itemsTotal) => {
+                    // console.log(`Loading file: ${url} (${itemsLoaded}/${itemsTotal})`);
+                    // You could update loading indicator here:
+                    // loadingIndicator.textContent = `Loading ${itemsLoaded}/${itemsTotal}...`;
+                },
+                // --- Manager onError ---
+                (url) => {
+                    console.error('There was an error loading ' + url);
+                    showLoadingIndicator(false);
+                    // Maybe display a more specific error?
+                    displayError("Failed to load critical resources. Please check console and refresh.");
+                }
+            );
+
+            // --- Load Aircraft Model ---
+            const gltfLoader = new GLTFLoader(loadingManager);
+            gltfLoader.load(MODEL_URL, (gltf) => {
+                console.log("Aircraft model loaded.");
+                loadedModelTemplate = gltf.scene; // Store the loaded scene
+                loadedModelTemplate.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE); // Apply settings to the template once
+                // Ensure model casts shadows (traverse the loaded scene)
+                loadedModelTemplate.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        // Optional: Also allow receiving shadows if needed
+                        // child.receiveShadow = true;
+                    }
+                });
+
+                // --- IMPORTANT: Rotate template if needed ---
+                // Models might not be oriented along +Z by default.
+                // Add rotations here to align the template correctly.
+
+                // Previous attempts:
+                // loadedModelTemplate.rotateX(Math.PI);
+                // loadedModelTemplate.rotateY(Math.PI);
+                // loadedModelTemplate.rotateZ(Math.PI);
+
+                // New approach: Set Euler angles directly for better control
+                // This will set the model to have its nose pointing forward (+Z)
+                // and its top side facing up (+Y)
+                loadedModelTemplate.rotation.set(0, Math.PI, 0);
+
+                // Uncomment alternatives if the above doesn't work:
+                // Alternative 1:
+                // loadedModelTemplate.rotation.set(0, 0, 0); // Reset orientation
+                // Alternative 2: 
+                // loadedModelTemplate.rotation.set(Math.PI/2, 0, 0); // Pitch 90 degrees
+            } /* no progress/error needed here, manager handles it */);
+
+            // --- Load Road Texture ---
+            const textureLoader = new THREE.TextureLoader(loadingManager);
+            textureLoader.load(ROAD_TEXTURE_URL, (texture) => {
+                console.log("Road texture loaded.");
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                roadTexture = texture; // Store loaded texture globally
+            });
+
+            // --- Load Ground Texture (already uses its own loader, but could be added to manager) ---
+            // Keep the existing createGround function which has its own loader for now
+            // Alternatively, move ground texture loading here and pass texture to createGround
+
+
+            /*
             loadingManager = new THREE.LoadingManager();
             const loader = new GLTFLoader(loadingManager);
 
@@ -231,17 +314,22 @@
                     displayError("Failed to load aircraft model. Please check console and refresh.");
                 }
             );
+            */
         }
 
         function initializeGame() {
-            showLoadingIndicator(false); // Hide loading indicator
-            console.log("Initializing game...");
+            // initializeGame was modified slightly to ensure it ONLY runs via the LoadingManager
 
-            if (!loadedModelTemplate) {
-                console.error("Model template not loaded before initializing game!");
-                displayError("Initialization Error. Model not ready.");
+            // Check if essential resources are loaded (redundant if manager's onLoad is used, but safe)
+            if (!loadedModelTemplate || !roadTexture) {
+                console.error("Essential resources not ready for initialization!");
+                // Display error maybe? The manager's onError should ideally catch this.
                 return;
             }
+
+            // Only hide indicator once we are truly ready to init
+            showLoadingIndicator(false); // Hide loading indicator
+            console.log("Initializing game...");
 
             // --- Create Player Aircraft (now clones the loaded model) ---
             createPlayerAircraft();
@@ -255,6 +343,8 @@
             createTrees(TREE_COUNT);
 
             createClouds();
+
+            createRoads();
 
             // --- Start Animation Loop ---
             animate(); // <-- START the loop HERE
@@ -727,6 +817,106 @@
                     console.error("Failed to load cloud texture:", error);
                 }
             );
+        }
+
+        function createRoads() {
+            if (!roadTexture) {
+                console.warn("Road texture not loaded, skipping road creation.");
+                return;
+            }
+            console.log(`Creating ${ROAD_COUNT} road segments...`);
+
+            const roadMaterial = new THREE.MeshStandardMaterial({
+                map: roadTexture,
+                side: THREE.FrontSide, // Only need to see the top
+                roughness: 0.9,
+                metalness: 0.0,
+                polygonOffset: true, // Help prevent z-fighting with ground
+                polygonOffsetFactor: -1.0,
+                polygonOffsetUnits: -1.0
+            });
+
+            for (let i = 0; i < ROAD_COUNT; i++) {
+                // --- Generate Path ---
+                const x1 = (Math.random() - 0.5) * GROUND_SIZE;
+                const z1 = (Math.random() - 0.5) * GROUND_SIZE;
+                const angle = Math.random() * Math.PI * 2;
+                const length = ROAD_MIN_LENGTH + Math.random() * (ROAD_MAX_LENGTH - ROAD_MIN_LENGTH);
+                const x2 = x1 + Math.sin(angle) * length; // Use sin for X based on angle
+                const z2 = z1 + Math.cos(angle) * length; // Use cos for Z based on angle
+
+                // Clamp end points to stay roughly within bounds
+                const x2c = Math.max(-GROUND_SIZE/2, Math.min(GROUND_SIZE/2, x2));
+                const z2c = Math.max(-GROUND_SIZE/2, Math.min(GROUND_SIZE/2, z2));
+
+                const dx = x2c - x1;
+                const dz = z2c - z1;
+                const pathLength = Math.sqrt(dx*dx + dz*dz);
+
+                if (pathLength < ROAD_MIN_LENGTH) continue; // Skip if clamped path is too short
+
+                // --- Create & Deform Geometry ---
+                const lengthSegments = Math.max(1, Math.ceil(pathLength / ROAD_SEGMENT_LENGTH));
+                // Create plane geometry ALONG Y axis initially (width=X, length=Y)
+                const roadGeometry = new THREE.PlaneGeometry(ROAD_WIDTH, pathLength, 1, lengthSegments);
+                const positionAttribute = roadGeometry.attributes.position;
+                const tempVertex = new THREE.Vector3(); // To read original vertex positions
+
+                for (let j = 0; j < positionAttribute.count; j++) {
+                    tempVertex.fromBufferAttribute(positionAttribute, j); // Read local vertex (x, y, z=0)
+
+                    // 't' is the fraction along the road's length (mapping local Y to 0-1 range)
+                    const t = (tempVertex.y + pathLength / 2) / pathLength;
+                    // 'w' is the fraction across the road's width (mapping local X to -0.5 to 0.5 range)
+                    const w = tempVertex.x / ROAD_WIDTH;
+
+                    // Calculate the world XZ position for this vertex
+                    const worldX = x1 + dx * t;
+                    const worldZ = z1 + dz * t;
+
+                    // Calculate terrain height at this world position
+                    const terrainY = getTerrainHeight(worldX, worldZ);
+                    const roadY = terrainY + ROAD_THICKNESS_OFFSET; // Place slightly above terrain
+
+                    // Calculate world position offset based on road width and path direction perp.
+                    // Normal vector to path (dz, -dx), normalized
+                    const nx = dz / pathLength;
+                    const nz = -dx / pathLength;
+                    const offsetX = nx * w * ROAD_WIDTH;
+                    const offsetZ = nz * w * ROAD_WIDTH;
+
+                    // Set the vertex position in WORLD coordinates into the buffer's Z value (before mesh rotation)
+                    // This vertex's final world Y position
+                    positionAttribute.setZ(j, roadY);
+                    // Adjust the vertex's X and Y based on world pos + offset (mapping to unrotated plane's X/Y)
+                    positionAttribute.setX(j, worldX + offsetX);
+                    positionAttribute.setY(j, worldZ + offsetZ); // Store world Z in buffer Y before final mesh rotation
+                }
+
+                positionAttribute.needsUpdate = true;
+                roadGeometry.computeVertexNormals(); // Normals for lighting on the road
+
+                // --- Create Mesh ---
+                // Clone material for unique texture repeats per road segment
+                const materialInstance = roadMaterial.clone();
+                materialInstance.map = roadTexture.clone(); // Clone texture for unique repeat settings
+                materialInstance.map.needsUpdate = true;
+                // Repeat texture along the length; adjust V repeat based on aspect ratio/desired look
+                materialInstance.map.repeat.set(1, pathLength / ROAD_WIDTH);
+
+                const roadMesh = new THREE.Mesh(roadGeometry, materialInstance);
+
+                // --- Position & Orient Mesh ---
+                // The geometry vertices are now essentially in world positions, but stored in X, Y, Z buffer
+                // where Z holds the world Y height. We need to rotate the mesh to make Z become Y.
+                roadMesh.rotation.x = -Math.PI / 2;
+                // Position mesh at origin as vertices are world-relative (post-rotation)
+                roadMesh.position.set(0, 0, 0);
+
+                roadMesh.receiveShadow = true; // Roads receive shadows
+                scene.add(roadMesh);
+            }
+            console.log("Roads created.");
         }
 
         function setupControls() {
