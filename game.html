@@ -30,8 +30,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
             }
         }
     </script>
@@ -280,7 +280,7 @@
             // playerAircraft.castShadow = true;
             
             if (!loadedModelTemplate) {
-                console.error("Cannot create player aircraft, model template not loaded.");
+                console.warn("Cannot create player aircraft, model template not loaded.");
                 return;
             }
             console.log("Creating player aircraft from template...");
