@@ -313,14 +313,6 @@
             scene.add(playerAircraft);
             console.log("Player aircraft added to scene at", playerAircraft.position);
 
-            // AxesHelper visualize the aircraft's local axes
-            //   Add coordinate axes helpers to the aircraft model itself.
-            //   This will show us exactly which direction (Red=X, Green=Y, Blue=Z) the model thinks is
-            //   forward/up/right after any rotations we apply.
-            const axesHelper = new THREE.AxesHelper(15); // Make axes 15 units long
-            playerAircraft.add(axesHelper); // Attach axes directly to the aircraft model
-            console.log("Added AxesHelper to playerAircraft");
-
             // Initialize physics variables
             // Ensure these are created AFTER playerAircraft is assigned
             playerVelocity = new THREE.Vector3();
