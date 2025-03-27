@@ -181,8 +181,24 @@
 
                     // --- IMPORTANT: Rotate template if needed ---
                     // Models might not be oriented along +Z by default.
-                    // Add rotations here to align the template correctly. Example:
-                    // loadedModelTemplate.rotateY(Math.PI); // Rotate 180 degrees if it faces -Z
+                    // Add rotations here to align the template correctly.
+                    
+                    // Previous attempts:
+                    // loadedModelTemplate.rotateX(Math.PI);
+                    // loadedModelTemplate.rotateY(Math.PI);
+                    // loadedModelTemplate.rotateZ(Math.PI);
+                    
+                    // New approach: Set Euler angles directly for better control
+                    // This will set the model to have its nose pointing forward (+Z)
+                    // and its top side facing up (+Y)
+                    loadedModelTemplate.rotation.set(0, Math.PI, 0);
+                    
+                    // Uncomment alternatives if the above doesn't work:
+                    // Alternative 1:
+                    // loadedModelTemplate.rotation.set(0, 0, 0); // Reset orientation
+                    
+                    // Alternative 2: 
+                    // loadedModelTemplate.rotation.set(Math.PI/2, 0, 0); // Pitch 90 degrees
 
                     initializeGame(); // Proceed with game setup
                 },
@@ -527,8 +543,9 @@
             // --- Manual Camera Following Logic ---
             if (playerAircraft) {
                 // Define camera offset relative to the aircraft (behind, above)
-                const relativeCameraOffset = new THREE.Vector3(0, 6, -18); // Adjust Y (height) and Z (distance) as needed
-
+                // Reversed Z direction to match our updated forward vector
+                const relativeCameraOffset = new THREE.Vector3(0, 6, 18); // Positive Z now to stay behind the aircraft
+                
                 // Calculate the desired world position of the camera
                 const cameraOffset = relativeCameraOffset.applyQuaternion(playerAircraft.quaternion);
                 const desiredCameraPosition = playerAircraft.position.clone().add(cameraOffset);
@@ -590,7 +607,14 @@
 
 
             // --- Apply Linear Velocity ---
-            const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(playerAircraft.quaternion);
+            // Original: Forward is defined as +Z in model space
+            // const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(playerAircraft.quaternion);
+            
+            // Modified approach: Try using -Z as forward direction
+            const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(playerAircraft.quaternion);
+            
+            // Using the original approach with model rotations applied earlier
+            // const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(playerAircraft.quaternion);
             const acceleration = forwardVector.multiplyScalar(thrust * deltaTime);
 
             playerVelocity.add(acceleration);
