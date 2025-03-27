@@ -54,7 +54,7 @@
         const UPDATE_INTERVAL_MS = 100; // Send updates every 100ms (10 Hz)
         const GROUND_SIZE = 5000;
         const GROUND_SEGMENTS = 100; // Segments for ground geometry/hills
-        const BUILDING_COUNT = 300;
+        const BUILDING_COUNT = 200;
         const MAX_BUILDING_HEIGHT = 400;
         const MIN_BUILDING_HEIGHT = 50;
         const STAR_COUNT = 5000;
@@ -452,9 +452,9 @@
             console.log("Populating landscape...");
             buildingBoundingBoxes = []; // <-- CLEAR bounding boxes before repopulating
             createSkyscrapers(BUILDING_COUNT); // Function to create tall buildings
-            createHouses(15); // Function to create clusters of houses (e.g., 15 clusters)
-            createPonds(20); // Function to create ponds
-            createLandmarks(5); // Function to create placeholder landmarks
+            createHouses(50); // Function to create clusters of houses (e.g., 15 clusters)
+            createPonds(30); // Function to create ponds
+            createLandmarks(10); // Function to create placeholder landmarks
             console.log("Landscape population complete.");
         }
 
