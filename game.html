@@ -117,12 +117,13 @@
             scene.fog = new THREE.Fog(0xcccccc, 1000, 15000);
 
             // Ground
-            const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE);
-            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
+            // const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE);
+            // const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide });
+            // const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            // ground.rotation.x = -Math.PI / 2;
+            // ground.receiveShadow = true;
+            // scene.add(ground);
+            createGround();
 
             // Buildings
             createBuildings();
@@ -284,6 +285,81 @@
             scene.add(stars);
         }
 
+        function createGround() {
+            const textureLoader = new THREE.TextureLoader();
+            const grassTextureUrl = 'https://threejs.org/examples/textures/terrain/grasslight-big.jpg'; // Example texture
+            // If CORS error: download this jpg, put it next to game.html, and use:
+            // const grassTextureUrl = 'grasslight-big.jpg';
+
+            console.log("Loading ground texture...");
+            textureLoader.load(
+                grassTextureUrl,
+                // --- Success Callback (Texture Loaded) ---
+                (texture) => {
+                    console.log("Ground texture loaded.");
+                    // Configure texture
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    const repeats = GROUND_SIZE / 100; // How many times texture repeats (adjust 100 based on texture size/look)
+                    texture.repeat.set(repeats, repeats);
+
+                    // --- Create Ground Geometry (Higher Segments) ---
+                    const groundSegments = 100; // More segments for hills
+                    const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, groundSegments, groundSegments);
+
+                    // --- Modify Vertices for Hills ---
+                    const positionAttribute = groundGeometry.attributes.position;
+                    const vertex = new THREE.Vector3();
+                    const amplitude = 150; // Max height of hills
+                    const frequency = 0.001; // How wavy the hills are
+
+                    console.log("Generating terrain geometry...");
+                    for (let i = 0; i < positionAttribute.count; i++) {
+                        vertex.fromBufferAttribute(positionAttribute, i); // Get vertex x, y, z
+
+                        // Calculate height based on x, z position using sine waves
+                        // (PlaneGeometry vertices have Y=0 initially, X and Z are horizontal)
+                        const height = Math.sin(vertex.x * frequency) * Math.cos(vertex.z * frequency) * amplitude;
+                        positionAttribute.setY(i, height); // Modify the Y coordinate
+                    }
+                    positionAttribute.needsUpdate = true; // Tell Three.js vertices have changed
+                    groundGeometry.computeVertexNormals(); // Recalculate normals for correct lighting
+                    console.log("Terrain geometry generated.");
+
+                    // --- Create Ground Material (Using Texture) ---
+                    const groundMaterial = new THREE.MeshStandardMaterial({
+                        map: texture, // Apply the loaded texture
+                        // color: 0x555555, // Color is now mostly from texture
+                        side: THREE.DoubleSide, // Keep double side if needed, but maybe FrontSide is enough
+                        roughness: 0.9, // Increase roughness for less shine
+                        metalness: 0.1
+                    });
+                    // debug why the ground plane is flat
+                    // const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+
+                    // --- Create Ground Mesh ---
+                    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+                    groundMesh.rotation.x = -Math.PI / 2; // Rotate plane to be horizontal
+                    groundMesh.receiveShadow = true; // Allow ground to receive shadows
+                    scene.add(groundMesh); // Add the final ground mesh to the scene
+                    console.log("Ground mesh created and added to scene.");
+                },
+                // --- Progress Callback (Optional) ---
+                undefined, // Not using progress here
+                // --- Error Callback ---
+                (error) => {
+                    console.error('Failed to load ground texture:', error);
+                    // Fallback: Create simple grey ground if texture fails
+                    const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE);
+                    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide });
+                    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+                    groundMesh.rotation.x = -Math.PI / 2;
+                    groundMesh.receiveShadow = true;
+                    scene.add(groundMesh);
+                    console.warn("Using fallback grey ground.");
+                }
+            );
+        }
 
         function createPlayerAircraft() {
             // Simple cone shape for the aircraft body
@@ -638,11 +714,15 @@
             const deltaPosition = playerVelocity.clone().multiplyScalar(deltaTime);
             playerAircraft.position.add(deltaPosition);
 
-            // --- Ground Collision (Simple) ---
-            const groundLevel = 0; // Or terrain height at this position
-            if (playerAircraft.position.y < groundLevel + 1) { // +1 for aircraft size buffer
-                playerAircraft.position.y = groundLevel + 1;
-                playerVelocity.y = Math.max(0, playerVelocity.y * -0.5); // Bounce slightly
+            // --- Ground Collision (Simple - Adjust Y level slightly) ---
+            // Since terrain has hills, Y=0 is no longer ground level everywhere.
+            // This check is INACCURATE but prevents falling through the absolute bottom.
+            const approximateGroundLevel = 10; // Raise slightly (adjust based on hill amplitude)
+            if (playerAircraft && playerAircraft.position.y < approximateGroundLevel + 1) { // +1 for aircraft size buffer
+                playerAircraft.position.y = approximateGroundLevel + 1;
+                if (playerVelocity) { // Check if playerVelocity exists
+                    playerVelocity.y = Math.max(0, playerVelocity.y * -0.5); // Bounce slightly
+                }
             }
         }
 
