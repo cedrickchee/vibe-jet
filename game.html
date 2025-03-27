@@ -71,6 +71,14 @@
         const TRUNK_RADIUS = 0.5;
         const FOLIAGE_HEIGHT = 10;
         const FOLIAGE_RADIUS = 4;
+        // --- Cloud Constants ---
+        const CLOUD_COUNT = 300; // Number of cloud particles
+        const CLOUD_SIZE = 250; // Base size of each cloud particle
+        const CLOUD_ALTITUDE_MIN = 800; // Minimum height for clouds
+        const CLOUD_ALTITUDE_MAX = 1200; // Maximum height for clouds
+        const CLOUD_AREA_XZ = GROUND_SIZE * 1.5; // How far clouds spread horizontally
+        const CLOUD_DRIFT_SPEED = 5.0; // How fast clouds move horizontally
+        const CLOUD_TEXTURE_URL = 'cloud10.png'; // Example texture
 
         // --- Global Variables ---
         let scene, camera, renderer, clock, skyLight, sunLight;
@@ -87,6 +95,7 @@
         let loadedModelTemplate = null; // To store the loaded model for cloning
         let loadingManager = null;      // Optional for loading progress
         let loadingIndicator = null;    // Simple DOM element for loading message
+        let clouds = null;              // Hold the Points object for animation
 
         // --- Initialization ---
         function init() {
@@ -244,6 +253,8 @@
             setupWebSocket();
 
             createTrees(TREE_COUNT);
+
+            createClouds();
 
             // --- Start Animation Loop ---
             animate(); // <-- START the loop HERE
@@ -497,6 +508,54 @@
             scene.add(trunkInstancedMesh);
             scene.add(foliageInstancedMesh);
             console.log(`Successfully created ${actualTreeCount} trees.`);
+        }
+
+        function createClouds() {
+            console.log("Creating clouds...");
+            const textureLoader = new THREE.TextureLoader();
+
+            textureLoader.load(
+                CLOUD_TEXTURE_URL,
+                // Success Callback (Texture Loaded)
+                (cloudTexture) => {
+                    console.log("Cloud texture loaded.");
+
+                    const cloudGeometry = new THREE.BufferGeometry();
+                    const positions = [];
+
+                    // Create random positions for each cloud particle
+                    for (let i = 0; i < CLOUD_COUNT; i++) {
+                        const x = (Math.random() - 0.5) * CLOUD_AREA_XZ;
+                        const y = Math.random() * (CLOUD_ALTITUDE_MAX - CLOUD_ALTITUDE_MIN) + CLOUD_ALTITUDE_MIN;
+                        const z = (Math.random() - 0.5) * CLOUD_AREA_XZ;
+                        positions.push(x, y, z);
+                    }
+
+                    cloudGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+                    const cloudMaterial = new THREE.PointsMaterial({
+                        size: CLOUD_SIZE,
+                        map: cloudTexture,
+                        blending: THREE.AdditiveBlending, // Blend clouds nicely
+                        depthWrite: false, // Often needed for transparency
+                        transparent: true,
+                        opacity: 0.6, // Make clouds slightly translucent (adjust)
+                        sizeAttenuation: true, // Make distant clouds smaller
+                        color: 0xeeeeff // Slight blueish-white tint (adjust)
+                    });
+
+                    clouds = new THREE.Points(cloudGeometry, cloudMaterial); // Assign to global variable
+                    scene.add(clouds);
+                    console.log("Clouds created and added to scene.");
+
+                },
+                // Progress (Optional)
+                undefined,
+                // Error Callback
+                (error) => {
+                    console.error("Failed to load cloud texture:", error);
+                }
+            );
         }
 
         function setupControls() {
