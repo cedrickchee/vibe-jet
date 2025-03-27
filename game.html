@@ -53,6 +53,7 @@
         const CAMERA_MAX_FOV_BOOST = 25; // Additional FOV at max speed boost
         const UPDATE_INTERVAL_MS = 100; // Send updates every 100ms (10 Hz)
         const GROUND_SIZE = 5000;
+        const GROUND_SEGMENTS = 100; // Segments for ground geometry/hills
         const BUILDING_COUNT = 300;
         const MAX_BUILDING_HEIGHT = 400;
         const MIN_BUILDING_HEIGHT = 50;
@@ -62,6 +63,14 @@
         const MODEL_URL = 'shenyang_j-11.glb'; // <-- Use local filename
         const MODEL_SCALE = 0.8; // <-- ADJUST THIS scale to fit your model size
         const OTHER_PLAYER_COLOR = 0x00aaff; // A blue tint for other players
+        // --- Terrain & Tree Constants ---
+        const TERRAIN_AMPLITUDE = 50; // Max height of hills (Adjusted from 150)
+        const TERRAIN_FREQUENCY = (8 * Math.PI * 2) / GROUND_SIZE; // How wavy. Higher value = more, smaller hills. Try a value relative to the size, aiming for ~5-10 waves across.
+        const TREE_COUNT = 7000; // Number of trees (adjust based on performance)
+        const TRUNK_HEIGHT = 8;
+        const TRUNK_RADIUS = 0.5;
+        const FOLIAGE_HEIGHT = 10;
+        const FOLIAGE_RADIUS = 4;
 
         // --- Global Variables ---
         let scene, camera, renderer, clock, skyLight, sunLight;
@@ -234,6 +243,8 @@
             // --- WebSocket Setup ---
             setupWebSocket();
 
+            createTrees(TREE_COUNT);
+
             // --- Start Animation Loop ---
             animate(); // <-- START the loop HERE
             console.log("Game initialized and animation loop started.");
@@ -304,17 +315,11 @@
                     texture.repeat.set(repeats, repeats);
 
                     // --- Create Ground Geometry (Higher Segments) ---
-                    const groundSegments = 100; // More segments for hills
-                    const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, groundSegments, groundSegments);
+                    const groundGeometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS, GROUND_SEGMENTS);
 
                     // --- Modify Vertices for Hills ---
                     const positionAttribute = groundGeometry.attributes.position;
                     const vertex = new THREE.Vector3();
-                    // Use amplitude 150 for testing, reduce later if needed (e.g., 30-50)
-                    const amplitude = 30;
-                    // Adjust frequency - higher value = more, smaller hills
-                    // Try a value relative to the size, aiming for ~5-10 waves across
-                    const frequency = (5 * Math.PI * 2) / GROUND_SIZE;
 
                     console.log("Generating terrain geometry...");
                     for (let i = 0; i < positionAttribute.count; i++) {
@@ -322,13 +327,11 @@
                         vertex.fromBufferAttribute(positionAttribute, i);
 
                         // Calculate height based on the vertex's position on the XY plane
-                        const height = Math.sin(vertex.x * frequency) *
-                                    Math.cos(vertex.y * frequency) * // Use vertex.y here
-                                    amplitude;
+                        const height = getTerrainHeight(vertex.x, vertex.y); // Use helper function (uses vertex.y before rotation)
 
                         // Apply this calculated height to the Z coordinate of the vertex buffer
                         // This Z value will become the world Y height after rotation
-                        positionAttribute.setZ(i, height); // <-- SET Z, NOT Y
+                        positionAttribute.setZ(i, height); // Apply height to Z <-- SET Z, NOT Y
 
                     }
                     positionAttribute.needsUpdate = true; // Tell Three.js vertices have changed
@@ -341,7 +344,7 @@
                     const groundMaterial = new THREE.MeshStandardMaterial({
                         map: texture, // Apply the loaded texture
                         // color: 0x555555, // Color is now mostly from texture
-                        side: THREE.DoubleSide, // Keep double side if needed, but maybe FrontSide is enough
+                        side: THREE.DoubleSide, // Keep double side if needed, but maybe FrontSide is enough (Consider THREE.FrontSide if performance needed)
                         roughness: 0.9, // Increase roughness for less shine
                         metalness: 0.1
                     });
@@ -369,6 +372,15 @@
                     console.warn("Using fallback grey ground.");
                 }
             );
+        }
+
+        function getTerrainHeight(worldX, worldZ) {
+            // Calculate height based on the same formula used in createGround
+            // Remember: world Z maps to the original plane's Y coordinate before rotation
+            const height = Math.sin(worldX * TERRAIN_FREQUENCY) *
+                        Math.cos(worldZ * TERRAIN_FREQUENCY) * // Use world Z here
+                        TERRAIN_AMPLITUDE;
+            return height;
         }
 
         function createPlayerAircraft() {
@@ -406,6 +418,85 @@
             // camera.position.set(0, 3, -10); // Behind and slightly above
             // camera.position.set(0, 5, -20); // Further back (Z=-20) and slightly higher (Y=5)
             // playerAircraft.add(camera);
+        }
+
+        function createTrees(count) {
+            console.log(`Creating ${count} trees...`);
+
+            // --- Define Geometry & Material ONCE ---
+            const trunkGeometry = new THREE.CylinderGeometry(TRUNK_RADIUS, TRUNK_RADIUS, TRUNK_HEIGHT, 8);
+            const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9 }); // Brown
+
+            const foliageGeometry = new THREE.ConeGeometry(FOLIAGE_RADIUS, FOLIAGE_HEIGHT, 8);
+            const foliageMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.9 }); // Forest Green
+
+            // --- Create Instanced Meshes ---
+            // Allocate space for 'count' instances
+            const trunkInstancedMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, count);
+            const foliageInstancedMesh = new THREE.InstancedMesh(foliageGeometry, foliageMaterial, count);
+
+            trunkInstancedMesh.castShadow = true;
+            trunkInstancedMesh.receiveShadow = true; // Trunks can receive shadows from foliage
+            foliageInstancedMesh.castShadow = true;
+            // foliageInstancedMesh.receiveShadow = false; // Foliage usually doesn't receive much shadow
+
+            // --- Calculate and Set Instance Transforms ---
+            const matrix = new THREE.Matrix4(); // Reusable matrix
+            const position = new THREE.Vector3();
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3();
+            let actualTreeCount = 0; // Count how many trees are actually placed
+
+            for (let i = 0; i < count; i++) {
+                // --- Position ---
+                const x = (Math.random() - 0.5) * GROUND_SIZE * 0.95; // Keep slightly away from edges
+                const z = (Math.random() - 0.5) * GROUND_SIZE * 0.95;
+                const y = getTerrainHeight(x, z);
+
+                // Simple check: avoid placing trees too low (e.g., underwater if amplitude is large)
+                // or too high on steep peaks, or inside buildings
+                const minTreeHeight = -10; // Adjust as needed
+                const maxTreeHeight = TERRAIN_AMPLITUDE * 0.8; // Avoid highest peaks maybe?
+                let buildingCollision = false;
+                const treeBox = new THREE.Box3( // Approximate bounding box for the tree base
+                    new THREE.Vector3(x - FOLIAGE_RADIUS, y, z - FOLIAGE_RADIUS),
+                    new THREE.Vector3(x + FOLIAGE_RADIUS, y + TRUNK_HEIGHT + FOLIAGE_HEIGHT, z + FOLIAGE_RADIUS)
+                );
+                for(const buildingBox of buildingBoundingBoxes) {
+                    if (treeBox.intersectsBox(buildingBox)) {
+                        buildingCollision = true;
+                        break;
+                    }
+                }
+
+                if (y > minTreeHeight && y < maxTreeHeight && !buildingCollision) {
+                    // --- Trunk Transform ---
+                    position.set(x, y + TRUNK_HEIGHT / 2, z); // Position base of trunk at terrain height
+                    quaternion.setFromEuler(new THREE.Euler(0, Math.random() * Math.PI * 2, 0)); // Random Y rotation
+                    scale.setScalar(0.8 + Math.random() * 0.4); // Slight random scale
+
+                    matrix.compose(position, quaternion, scale);
+                    trunkInstancedMesh.setMatrixAt(actualTreeCount, matrix);
+
+                    // --- Foliage Transform (adjust Y position) ---
+                    position.set(x, y + TRUNK_HEIGHT + FOLIAGE_HEIGHT / 2 - 1, z); // Position foliage above trunk (slight overlap)
+                    // Use same random rotation and scale as trunk
+                    matrix.compose(position, quaternion, scale);
+                    foliageInstancedMesh.setMatrixAt(actualTreeCount, matrix);
+
+                    actualTreeCount++; // Increment count of successfully placed trees
+                }
+                // If tree position is invalid, simply skip this iteration (i)
+            }
+
+            // Important: Update the count for the InstancedMesh if some trees were skipped
+            trunkInstancedMesh.count = actualTreeCount;
+            foliageInstancedMesh.count = actualTreeCount;
+
+            // --- Add to Scene ---
+            scene.add(trunkInstancedMesh);
+            scene.add(foliageInstancedMesh);
+            console.log(`Successfully created ${actualTreeCount} trees.`);
         }
 
         function setupControls() {
