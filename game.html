@@ -762,6 +762,17 @@
 
             const deltaTime = clock.getDelta();
 
+            // --- Cloud Animation ---
+            // update cloud object position slightly each frame to simulate drifting.
+            if (clouds) {
+                // Simple drift along X axis
+                clouds.position.x += CLOUD_DRIFT_SPEED * deltaTime;
+                // Optional: Wrap clouds around if they go too far
+                if (clouds.position.x > CLOUD_AREA_XZ / 2) {
+                    clouds.position.x -= CLOUD_AREA_XZ;
+                }
+            }
+
             updatePlayerMovement(deltaTime);
             updateCameraFOV();
             updateDayNightCycle(deltaTime);
