@@ -544,7 +544,7 @@
             if (playerAircraft) {
                 // Define camera offset relative to the aircraft (behind, above)
                 // Reversed Z direction to match our updated forward vector
-                const relativeCameraOffset = new THREE.Vector3(0, 6, 18); // Positive Z now to stay behind the aircraft
+                const relativeCameraOffset = new THREE.Vector3(0, 2, 10); // Positive Z now to stay behind the aircraft
                 
                 // Calculate the desired world position of the camera
                 const cameraOffset = relativeCameraOffset.applyQuaternion(playerAircraft.quaternion);
