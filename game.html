@@ -499,6 +499,737 @@
             console.log("Ponds created.");
         }
 
+        function Castle() {
+            console.log("Creating castle...");
+            const castleGroup = new THREE.Group();
+            
+            // Main castle body - large central keep
+            const keepGeometry = new THREE.BoxGeometry(40, 60, 40);
+            const stoneMaterial = new THREE.MeshPhongMaterial({
+                color: 0x808080,
+                flatShading: true
+            });
+            const keep = new THREE.Mesh(keepGeometry, stoneMaterial);
+            keep.position.y = 30;
+            castleGroup.add(keep);
+            
+            // Create text banner above castle door
+            const createCastleTextTexture = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 128;
+                
+                const context = canvas.getContext('2d');
+                
+                // Clear canvas with transparent background
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Text
+                context.font = 'bold 36px system-ui';
+                context.fillStyle = 'white';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillText('CEDRIC.AI', canvas.width / 2, canvas.height / 3);
+                context.fillText('CASTLE', canvas.width / 2, canvas.height * 2/3);
+                
+                return new THREE.CanvasTexture(canvas);
+            };
+
+            // Create banner with castle text
+            const castleBannerGeometry = new THREE.PlaneGeometry(30, 15);
+            const castleBannerMaterial = new THREE.MeshBasicMaterial({ 
+                map: createCastleTextTexture(),
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.9,
+                fog: false
+            });
+            const castleBanner = new THREE.Mesh(castleBannerGeometry, castleBannerMaterial);
+            
+            // Position banner above castle door
+            castleBanner.position.set(0, 40, 20.1); // Slightly in front of castle wall
+            castleGroup.add(castleBanner);
+
+            // Four corner towers
+            const towerGeometry = new THREE.CylinderGeometry(6, 8, 70, 8);
+            const towerPositions = [
+                [-22, 35, -22],
+                [22, 35, -22],
+                [-22, 35, 22],
+                [22, 35, 22]
+            ];
+            
+            towerPositions.forEach((pos, index) => {
+                const tower = new THREE.Mesh(towerGeometry, stoneMaterial);
+                tower.position.set(...pos);
+                castleGroup.add(tower);
+                
+                // Add conical roof to each tower
+                const roofGeometry = new THREE.ConeGeometry(8, 15, 8);
+                const roofMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x8B4513
+                });
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.set(pos[0], pos[1] + 42, pos[2]);
+                castleGroup.add(roof);
+            });
+            
+            // Add crenellations
+            for(let x = -18; x <= 18; x += 4) {
+                for(let z = -18; z <= 18; z += 4) {
+                    if(x === -18 || x === 18 || z === -18 || z === 18) {
+                        const merlon = new THREE.Mesh(
+                            new THREE.BoxGeometry(3, 4, 3),
+                            stoneMaterial
+                        );
+                        merlon.position.set(x, 62, z);
+                        castleGroup.add(merlon);
+                    }
+                }
+            }
+            
+            // extra
+            castleGroup.scale.set(3.0, 3.0, 3.0);
+
+            // Position the castle
+            // castleGroup.position.set(100, 35.2, -300);
+            castleGroup.position.set(2000, 10, 1000);
+            return castleGroup;
+        }
+
+        function createCastle() {
+            // Add after other scene setup code
+            const castle = Castle();
+            scene.add(castle);
+            console.log("Castle created.");
+        }
+
+        function BigHouse() {
+            console.log("Creating big house...");
+            // houses with pointy roofs
+            const houseGroup = new THREE.Group();
+            const scale = 10;
+            
+            // Random house size
+            const width = (4 * scale) + Math.random() * 4;
+            const height = (6 * scale) + Math.random() * 8;
+            const depth = (4 * scale) + Math.random() * 4;
+            
+            // Main building
+            const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+            const buildingMaterial = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(
+                    0.7 + Math.random() * 0.3,
+                    0.7 + Math.random() * 0.3,
+                    0.7 + Math.random() * 0.3
+                )
+            });
+            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            building.position.y = height/2;
+            houseGroup.add(building);
+            
+            // Roof (pyramid style)
+            const roofHeight = height * 0.3;
+            const roofGeometry = new THREE.ConeGeometry(width * 0.8, roofHeight, 4);
+            const roofMaterial = new THREE.MeshPhongMaterial({
+                color: Math.random() > 0.5 ? 0x8B4513 : 0xA0522D // Brown variations
+            });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = height + roofHeight/2;
+            roof.rotation.y = Math.PI/4; // Rotate 45 degrees for better look
+            houseGroup.add(roof);
+            
+            // Windows
+            const windowSize = width * 0.2;
+            const windowGeometry = new THREE.BoxGeometry(windowSize, windowSize, 0.1);
+            const windowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xaaaaff,
+                emissive: 0x444444
+            });
+            
+            // Add multiple windows
+            const windowPositions = [
+                [-width/4, height/2, depth/2],
+                [width/4, height/2, depth/2],
+                [-width/4, height*0.75, depth/2],
+                [width/4, height*0.75, depth/2]
+            ];
+            
+            windowPositions.forEach(pos => {
+                const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                window.position.set(...pos);
+                houseGroup.add(window);
+            });
+            
+            // Door
+            const doorWidth = width * 0.3;
+            const doorHeight = height * 0.4;
+            const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
+            const doorMaterial = new THREE.MeshPhongMaterial({
+                color: 0x8B4513
+            });
+            const door = new THREE.Mesh(doorGeometry, doorMaterial);
+            door.position.set(0, doorHeight/2, depth/2);
+            houseGroup.add(door);
+            
+            return houseGroup;
+        }
+
+        // Create multiple houses
+        function createBigHouse(count) {
+            const houses = [];
+            // Create houses both along coast and inland
+            for(let i = 0; i < count; i++) {  // 80 houses total
+                const house = BigHouse();
+                
+                // Generate initial position
+                // let x = -400 + Math.random() * 600; // From coast (-400) to inland (+200)
+                // let z = Math.random() * 1600 - 800; // Spread along Z axis
+                
+                // Keep houses away from runway and approach path
+                // Runway is at x=0, so check distance from center
+                // while (Math.abs(x) < 30 && Math.abs(z) < 150) { // Increased clearance area
+                //     x = -400 + Math.random() * 600;
+                //     z = Math.random() * 1600 - 800;
+                // }
+
+                // house.position.set(
+                //     x,
+                //     35, // Ground level
+                //     z
+                // );
+
+                const x = (Math.random() - 0.5) * (GROUND_SIZE * 0.9); // Keep away from edge slightly
+                const z = (Math.random() - 0.5) * (GROUND_SIZE * 0.9);
+                const y = getTerrainHeight(x, z); // Place base slightly above ground? Or adjust based on shape size
+                house.position.set(x, y, z);
+
+                house.rotation.y = Math.random() * Math.PI * 2; // Random rotation
+                houses.push(house);
+                scene.add(house);
+            }
+
+            console.log("Big houses created.");
+        }
+
+        // Robot on land
+        function createGiantRobot() {
+            console.log("Creating giant robot...");
+
+            // Create a floating robot for lindy.ai
+            const robotGroup = new THREE.Group();
+            
+            // Robot body
+            const bodyGeometry = new THREE.BoxGeometry(10, 14, 6);
+            const bodyMaterial = new THREE.MeshPhongMaterial({
+                color: 0x3498db, // Blue color
+                shininess: 70,
+                fog: false
+            });
+            const robotBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            robotGroup.add(robotBody);
+            
+            // Robot head
+            const headGeometry = new THREE.BoxGeometry(8, 6, 6);
+            const headMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2980b9, // Darker blue
+                shininess: 70,
+                fog: false
+            });
+            const robotHead = new THREE.Mesh(headGeometry, headMaterial);
+            robotHead.position.y = 10; // Position on top of body
+            robotGroup.add(robotHead);
+            
+            // Robot eyes
+            const eyeGeometry = new THREE.SphereGeometry(1, 16, 16);
+            const eyeMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff0000, // Red eyes
+                emissive: 0xff0000,
+                emissiveIntensity: 0.5,
+                fog: false
+            });
+            
+            // Left eye
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(-2, 10, 3);
+            robotGroup.add(leftEye);
+            
+            // Right eye
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            rightEye.position.set(2, 10, 3);
+            robotGroup.add(rightEye);
+            
+            // Robot arms
+            const armGeometry = new THREE.BoxGeometry(2, 8, 2);
+            const armMaterial = new THREE.MeshPhongMaterial({
+                color: 0x3498db,
+                shininess: 70,
+                fog: false
+            });
+            
+            // Left arm
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-6, 0, 0);
+            robotGroup.add(leftArm);
+            
+            // Right arm
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(6, 0, 0);
+            robotGroup.add(rightArm);
+            
+            // Robot legs
+            const legGeometry = new THREE.BoxGeometry(3, 8, 3);
+            const legMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2980b9,
+                shininess: 70,
+                fog: false
+            });
+            
+            // Left leg
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-3, -11, 0);
+            robotGroup.add(leftLeg);
+            
+            // Right leg
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(3, -11, 0);
+            robotGroup.add(rightLeg);
+            
+            // Create LINDY.AI banner
+            const bannerCanvas = document.createElement('canvas');
+            const bannerContext = bannerCanvas.getContext('2d');
+            bannerCanvas.width = 512;
+            bannerCanvas.height = 128;
+            
+            // Set banner background
+            bannerContext.fillStyle = '#2980b9'; // Blue background
+            bannerContext.fillRect(0, 0, bannerCanvas.width, bannerCanvas.height);
+            
+            // Add text
+            bannerContext.font = 'bold 60px system-ui';
+            bannerContext.textAlign = 'center';
+            bannerContext.textBaseline = 'middle';
+            bannerContext.fillStyle = 'white';
+            bannerContext.fillText('NEO.AI', bannerCanvas.width / 2, bannerCanvas.height / 2);
+            
+            const bannerTexture = new THREE.CanvasTexture(bannerCanvas);
+            const bannerMaterial = new THREE.MeshBasicMaterial({
+                map: bannerTexture,
+                transparent: true,
+                side: THREE.DoubleSide,
+                fog: false
+            });
+            
+            const bannerGeometry = new THREE.PlaneGeometry(16, 4);
+            const banner = new THREE.Mesh(bannerGeometry, bannerMaterial);
+            banner.position.y = 18; // Position above the robot
+            robotGroup.add(banner);
+            
+            // extra
+            robotGroup.scale.set(8.0, 8.0, 8.0);
+
+            const x = -800;
+            const z = 2000 > GROUND_SIZE ? GROUND_SIZE * 0.9 : 2000;
+            const y = getTerrainHeight(x, z) + 120; // Place base slightly above ground? Or adjust based on shape size
+            robotGroup.position.set(x, y, z);
+
+            robotGroup.rotation.y = 15.0;
+            
+            scene.add(robotGroup);
+
+            console.log("Giant robot created.");
+        }
+
+        // Add after other scene setup code, before the animation loop
+        function Mountain() {
+            console.log("Creating mountain...");
+
+            let mountainSign;
+
+            const mountainGroup = new THREE.Group();
+            
+            // Create main mountain peak
+            const mountainGeometry = new THREE.ConeGeometry(100, 200, 6);
+            const mountainMaterial = new THREE.MeshPhongMaterial({
+                color: 0x8B4513, // Brown base color
+                flatShading: true
+            });
+            
+            const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
+            mountain.position.y = 100; // Half height to place base at ground level
+            mountainGroup.add(mountain);
+
+            // <create Hollywood-style sign text texture>
+            const createMountainSignTextTexture = () => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 1024;
+                canvas.height = 256;
+                
+                // Transparent background
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Text style
+                context.font = 'bold 60px system-ui';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                // Load custom font
+                const font = new FontFace('SF Hollywood Hills', 'url(/assets/hollywood.ttf)');
+                font.load().then(() => {
+                    document.fonts.add(font);
+                    
+                    // Add black stroke
+                    context.font = 'bold 60px "SF Hollywood Hills"';
+                    context.strokeStyle = '#000000';
+                    
+                    // Add white fill
+                    context.fillStyle = '#FFFFFF';
+                    context.fillText('CEDRICCHEE.COM', canvas.width/2, canvas.height/2);
+                });
+                return new THREE.CanvasTexture(canvas);
+            };
+
+            // Create sign banner
+            const mountainSignGeometry = new THREE.PlaneGeometry(120, 30);
+            const mountainSignMaterial = new THREE.MeshBasicMaterial({
+                map: createMountainSignTextTexture(),
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            mountainSign = new THREE.Mesh(mountainSignGeometry, mountainSignMaterial);
+            
+            // Position sign on mountain slope
+            mountainSign.position.set(-60, 70, 40);
+            mountainSign.rotation.z=0;
+            mountainSign.rotation.x=0;
+            mountainSign.rotation.y=-1.1;
+            mountainGroup.add(mountainSign);
+            // </create Hollywood-style sign text texture>
+
+
+            // Add snow cap
+            const snowCapGeometry = new THREE.ConeGeometry(40, 50, 6);
+            const snowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xFFFFFF, // White snow
+                flatShading: true
+            });
+            
+            const snowCap = new THREE.Mesh(snowCapGeometry, snowMaterial);
+            snowCap.position.y = 175; // Position at top of mountain
+            mountainGroup.add(snowCap);
+            
+            // Add some smaller peaks around the main one
+            const smallPeakPositions = [
+                [-50, -30, -40],
+                [60, -50, 30],
+                [-30, -60, 50]
+            ];
+            
+            smallPeakPositions.forEach(pos => {
+                const smallPeakHeight = 80 + Math.random() * 60;
+                const smallPeakGeometry = new THREE.ConeGeometry(30 + Math.random() * 20, smallPeakHeight, 5);
+                const smallPeak = new THREE.Mesh(smallPeakGeometry, mountainMaterial);
+                
+                smallPeak.position.set(
+                    pos[0],
+                    smallPeakHeight / 2, // Half height to place base at ground level
+                    pos[1]
+                );
+                
+                // Random rotation for variety
+                smallPeak.rotation.y = Math.random() * Math.PI;
+                mountainGroup.add(smallPeak);
+                
+                // Add small snow caps to some peaks
+                if (Math.random() > 0.3) {
+                    const smallSnowGeometry = new THREE.ConeGeometry(15, 20, 5);
+                    const smallSnow = new THREE.Mesh(smallSnowGeometry, snowMaterial);
+                    smallSnow.position.y = smallPeakHeight * 0.4;
+                    smallPeak.add(smallSnow);
+                }
+            });
+            
+            // Add trees on the lower slopes
+            for (let i = 0; i < 50; i++) {
+                // Calculate position on the mountain slope
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 70 + Math.random() * 100; // Increased minimum and maximum distance
+                const x = Math.cos(angle) * distance;
+                const z = Math.sin(angle) * distance;
+                
+                // Calculate height based on distance from center (higher = lower on slope)
+                const height = 10 + Math.random() * 15;
+                
+                // Create tree trunk
+                const trunkGeometry = new THREE.CylinderGeometry(2, 3, height, 8);
+                const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                
+                // Create tree top (pine tree style)
+                const treeTopGeometry = new THREE.ConeGeometry(8, height * 1.5, 8);
+                const treeTopMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x006400, // Dark green
+                    flatShading: true
+                });
+                const treeTop = new THREE.Mesh(treeTopGeometry, treeTopMaterial);
+                treeTop.position.y = height * 0.75;
+                
+                // Create tree group
+                const tree = new THREE.Group();
+                tree.add(trunk);
+                tree.add(treeTop);
+                
+                // Position tree on mountain slope
+                tree.position.set(x, height/2, z);
+                
+                // Random rotation and slight tilt based on slope
+                tree.rotation.y = Math.random() * Math.PI * 2;
+                const slopeTilt = distance / 100; // More tilt further from center
+                tree.rotation.x = (Math.random() - 0.5) * 0.2 * slopeTilt;
+                tree.rotation.z = (Math.random() - 0.5) * 0.2 * slopeTilt;
+                
+                mountainGroup.add(tree);
+            }
+
+            // Position the mountain in the village area
+            mountainGroup.position.set(-2000, 0, -800);
+            
+            // extra
+            mountainGroup.scale.set(2.0, 2.0, 2.0);
+            mountainGroup.rotation.y = 15.0;
+
+            return mountainGroup;
+        }
+
+        // Create and add mountain to scene
+        function createMountain() {
+            const mountain = Mountain();
+            scene.add(mountain);
+
+            console.log("Mountain created.");
+        }
+
+        // Create UFO with logo
+        function UFO() {
+            console.log("Creating UFO ...");
+
+            const ufoGroup = new THREE.Group();
+            
+            // Create the main UFO body (saucer shape)
+            const ufoBodyGeometry = new THREE.SphereGeometry(10, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            
+            // Load Basecamp logo texture for the UFO body
+            const ufoTextureLoader = new THREE.TextureLoader();
+            // const ufoTexture = ufoTextureLoader.load('/assets/fly_basecamp.png');
+            
+            // Configure texture to repeat in a pattern
+            // ufoTexture.wrapS = THREE.RepeatWrapping;
+            // ufoTexture.wrapT = THREE.RepeatWrapping;
+            // ufoTexture.repeat.set(5, 4);
+            
+            const ufoBodyMaterial = new THREE.MeshPhongMaterial({
+                // map: ufoTexture,
+                color: 0xC0C0C0, // Silver/metallic color
+                shininess: 80,
+                fog: false
+            });
+            
+            const ufoBody = new THREE.Mesh(ufoBodyGeometry, ufoBodyMaterial);
+            ufoBody.scale.y = 0.3; // Flatten the sphere to make it saucer-like
+            ufoGroup.add(ufoBody);
+            // Create the bottom part of the UFO with the same texture
+            const ufoBottomGeometry = new THREE.SphereGeometry(7, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 4);
+            const ufoBottomMaterial = new THREE.MeshPhongMaterial({
+                // map: ufoTexture,
+                color: 0xC0C0C0, // Silver/metallic color
+                shininess: 60,
+                fog: false
+            });
+            const ufoBottom = new THREE.Mesh(ufoBottomGeometry, ufoBottomMaterial);
+            ufoBottom.position.y = 0;;
+            ufoBottom.scale.y = 0.5;
+            ufoGroup.add(ufoBottom);
+            
+
+
+            // Create the cockpit/dome on top of the UFO
+            const ufoCockpitGeometry = new THREE.SphereGeometry(4, 32, 32);
+
+            // Load the globe texture for the cockpit
+            const ufoGlobeTextureLoader = new THREE.TextureLoader();
+            // const ufoGlobeTexture = ufoGlobeTextureLoader.load('/assets/fly_basecamp_globe.png?3');
+
+            // Configure the texture to wrap properly around the sphere
+            // ufoGlobeTexture.wrapS = THREE.RepeatWrapping;
+            // ufoGlobeTexture.wrapT = THREE.ClampToEdgeWrapping; // Clamp vertical to avoid stretching at poles
+            // ufoGlobeTexture.repeat.set(2, 1);
+
+            const ufoCockpitMaterial = new THREE.MeshPhongMaterial({
+                // map: ufoGlobeTexture,
+                transparent: true,
+                opacity: 0.9, // Slightly transparent for a glass-like effect
+                shininess: 100,
+                fog: false
+            });
+
+            const ufoCockpit = new THREE.Mesh(ufoCockpitGeometry, ufoCockpitMaterial);
+            ufoGroup.add(ufoCockpit);
+
+            
+            ufoCockpit.rotation.y=0.1;
+            ufoCockpit.position.y=3;
+            
+            
+            // Add a top plate for the main disc's bottom side
+            const ufoTopBottomPlateGeometry = new THREE.CircleGeometry(10, 32);
+            const ufoTopBottomPlateMaterial = new THREE.MeshPhongMaterial({
+                // map: ufoTexture,
+                color: 0xC0C0C0, // Silver/metallic color
+                shininess: 60,
+                side: THREE.DoubleSide,
+                fog: false
+            });
+            const ufoTopBottomPlate = new THREE.Mesh(ufoTopBottomPlateGeometry, ufoTopBottomPlateMaterial);
+            ufoTopBottomPlate.position.y = 0;
+            ufoTopBottomPlate.rotation.x = Math.PI / 2; // Make it horizontal
+            ufoGroup.add(ufoTopBottomPlate);
+            
+            // Create lights under the UFO
+            const ufoLightPositions = [
+                [5, -2, 0], [-5, -2, 0], [0, -2, 5], [0, -2, -5]
+            ];
+            
+            ufoLightPositions.forEach(pos => {
+                const ufoLightGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+                const ufoLightMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00FFFF, // Cyan color
+                    fog: false
+                });
+                const ufoLight = new THREE.Mesh(ufoLightGeometry, ufoLightMaterial);
+                ufoLight.position.set(pos[0], pos[1], pos[2]);
+                ufoGroup.add(ufoLight);
+            });
+            
+            // Position the UFO in the scene
+            // ufoGroup.position.set(200, 1000, 5000);
+            ufoGroup.position.set(0, 40, 70);
+
+            return ufoGroup;
+        }
+
+        function createUFO() {
+            const ufoGroup = UFO();
+            // extra
+            ufoGroup.scale.set(2.0, 2.0, 2.0);
+            scene.add(ufoGroup);
+
+            // Animation for the UFO
+            const ufoAnimation = () => {
+                const ufoTime = Date.now() * 0.001;
+                
+                // Circular flight pattern closer to runway (0,0)
+                ufoGroup.position.x = 0 + Math.sin(ufoTime * 0.2) * 100;
+                ufoGroup.position.z = -70 + Math.cos(ufoTime * 0.2) * 100;
+                
+                // Lower flying height between 50-100
+                ufoGroup.position.y = 100 + Math.sin(ufoTime * 0.5) * 10;
+                
+                // Slight tilting in the direction of movement
+                ufoGroup.rotation.z = Math.sin(ufoTime * 0.2) * 0.1;
+                ufoGroup.rotation.x = Math.cos(ufoTime * 0.2) * 0.1;
+                
+                // Update UFO sound based on position
+                // updateUFOSound();
+                
+                requestAnimationFrame(ufoAnimation);
+            };
+
+            ufoAnimation();
+
+            console.log("UFO created.");
+        }
+
+        function Blimp() {
+            console.log('Creating blimp ...');
+
+            // Create blimp group
+            const blimp3Group = new THREE.Group();
+
+            // Load texture for blimp body
+            // const blimp3Texture = new THREE.TextureLoader().load('/assets/fly_synthflow.png');
+            // blimp3Texture.wrapS = THREE.RepeatWrapping;
+            // blimp3Texture.wrapT = THREE.RepeatWrapping;
+            // blimp3Texture.repeat.set(5, 3);
+
+            // Main blimp body (ellipsoid) - increased length by 1.5x
+            const blimp3MainBodyGeometry = new THREE.SphereGeometry(20, 32, 32);
+            blimp3MainBodyGeometry.scale(1, 1, 2.7); // Changed from 1.8 to 2.7 (1.5x longer)
+            const blimp3MainBodyMaterial = new THREE.MeshPhongMaterial({ 
+                // map: blimp3Texture,
+                color: 0xFFFF00
+            });
+            const blimp3MainBody = new THREE.Mesh(blimp3MainBodyGeometry, blimp3MainBodyMaterial);
+            blimp3Group.add(blimp3MainBody);
+
+            // Blimp tail section - moved further back
+            const blimp3TailGeometry = new THREE.ConeGeometry(15, 20, 32);
+            blimp3TailGeometry.rotateX(Math.PI / 2);
+            blimp3TailGeometry.translate(0, 0, 45); // Changed from 30 to 45 to match the longer body
+            const blimp3TailMaterial = new THREE.MeshPhongMaterial({ 
+                // map: blimp3Texture,
+                color: 0x00008B
+            });
+            const blimp3Tail = new THREE.Mesh(blimp3TailGeometry, blimp3TailMaterial);
+            blimp3Group.add(blimp3Tail);
+
+            // Gondola (cabin beneath blimp)
+            const blimp3GondolaGeometry = new THREE.BoxGeometry(10, 5, 7);
+            const blimp3GondolaMaterial = new THREE.MeshPhongMaterial({ color: 0x404040 }); // Dark grey
+            const blimp3Gondola = new THREE.Mesh(blimp3GondolaGeometry, blimp3GondolaMaterial);
+            blimp3Gondola.position.y = -20;
+            blimp3Group.add(blimp3Gondola);
+
+            // Fins (rudders)
+            const blimp3FinGeometry = new THREE.ConeGeometry(8, 15, 4);
+            blimp3FinGeometry.rotateX(Math.PI / 2);
+
+            const blimp3FinMaterial = new THREE.MeshPhongMaterial({ 
+                // map: blimp3Texture,
+                color: 0xFF0000
+            });
+
+            // Vertical fin - moved further back
+            const blimp3VerticalFin = new THREE.Mesh(blimp3FinGeometry, blimp3FinMaterial);
+            blimp3VerticalFin.position.set(0, 0, 50); // Changed from 35 to 50
+            blimp3VerticalFin.rotation.x = Math.PI / 2;
+            blimp3Group.add(blimp3VerticalFin);
+
+            // Horizontal fin - moved further back
+            const blimp3HorizontalFin = new THREE.Mesh(blimp3FinGeometry, blimp3FinMaterial);
+            blimp3HorizontalFin.position.set(0, 0, 50); // Changed from 35 to 50
+            blimp3HorizontalFin.rotation.z = Math.PI / 2;
+            blimp3Group.add(blimp3HorizontalFin);
+
+            // Position the blimp high in the sky
+            blimp3Group.position.set(
+                -550, // Fixed position near runway
+                500,  // Lower altitude at 100
+                -800   // Moved further in front of the runway (negative Z moves it forward)
+            );
+
+            // Rotate the blimp 90 degrees leftwards (counter-clockwise around Y axis)
+            blimp3Group.rotation.y=-1.5;;
+            
+            return blimp3Group;
+        }
+
+        function createBlimp() {
+            const blimp3Group = Blimp();
+            scene.add(blimp3Group);
+
+            console.log('Blimp created');
+        }
+
         // Places a few large, distinct procedural shapes.
         function createLandmarks(count) {
             console.log("Creating landmarks...");
@@ -542,9 +1273,15 @@
             console.log("Populating landscape...");
             buildingBoundingBoxes = []; // <-- CLEAR bounding boxes before repopulating
             createSkyscrapers(BUILDING_COUNT); // Function to create tall buildings
-            createHouses(50); // Function to create clusters of houses (e.g., 15 clusters)
+            createHouses(20); // Function to create clusters of houses (e.g., 15 clusters)
             createPonds(30); // Function to create ponds
-            createLandmarks(10); // Function to create placeholder landmarks
+            // createLandmarks(10); // Function to create placeholder landmarks
+            createCastle();
+            createBigHouse(50);
+            createGiantRobot();
+            createMountain();
+            createUFO();
+            createBlimp();
             console.log("Landscape population complete.");
         }
 
