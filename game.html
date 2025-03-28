@@ -1109,12 +1109,12 @@
             const ufoAnimation = () => {
                 const ufoTime = Date.now() * 0.001;
                 
-                // Circular flight pattern closer to runway (0,0)
-                ufoGroup.position.x = 0 + Math.sin(ufoTime * 0.2) * 100;
-                ufoGroup.position.z = -70 + Math.cos(ufoTime * 0.2) * 100;
+                // Circular flight pattern closer to player aircraft (0,0)
+                ufoGroup.position.x = 0 + Math.sin(ufoTime * 0.2) * 500;
+                ufoGroup.position.z = -70 + Math.cos(ufoTime * 0.2) * 500;
                 
                 // Lower flying height between 50-100
-                ufoGroup.position.y = 100 + Math.sin(ufoTime * 0.5) * 10;
+                ufoGroup.position.y = 200 + Math.sin(ufoTime * 0.5) * 10;
                 
                 // Slight tilting in the direction of movement
                 ufoGroup.rotation.z = Math.sin(ufoTime * 0.2) * 0.1;
