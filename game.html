@@ -608,7 +608,7 @@
             console.log("Creating big house...");
             // houses with pointy roofs
             const houseGroup = new THREE.Group();
-            const scale = 10;
+            const scale = 10; // TODO: change to use houseGroup scale later
             
             // Random house size
             const width = (4 * scale) + Math.random() * 4;
@@ -678,26 +678,9 @@
         // Create multiple houses
         function createBigHouse(count) {
             const houses = [];
-            // Create houses both along coast and inland
-            for(let i = 0; i < count; i++) {  // 80 houses total
-                const house = BigHouse();
-                
-                // Generate initial position
-                // let x = -400 + Math.random() * 600; // From coast (-400) to inland (+200)
-                // let z = Math.random() * 1600 - 800; // Spread along Z axis
-                
-                // Keep houses away from runway and approach path
-                // Runway is at x=0, so check distance from center
-                // while (Math.abs(x) < 30 && Math.abs(z) < 150) { // Increased clearance area
-                //     x = -400 + Math.random() * 600;
-                //     z = Math.random() * 1600 - 800;
-                // }
 
-                // house.position.set(
-                //     x,
-                //     35, // Ground level
-                //     z
-                // );
+            for(let i = 0; i < count; i++) {
+                const house = BigHouse();
 
                 const x = (Math.random() - 0.5) * (GROUND_SIZE * 0.9); // Keep away from edge slightly
                 const z = (Math.random() - 0.5) * (GROUND_SIZE * 0.9);
@@ -716,7 +699,7 @@
         function createGiantRobot() {
             console.log("Creating giant robot...");
 
-            // Create a floating robot for lindy.ai
+            // Create a floating robot
             const robotGroup = new THREE.Group();
             
             // Robot body
@@ -859,7 +842,7 @@
             mountain.position.y = 100; // Half height to place base at ground level
             mountainGroup.add(mountain);
 
-            // <create Hollywood-style sign text texture>
+            // Create Hollywood-style sign text texture
             const createMountainSignTextTexture = () => {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -904,7 +887,6 @@
             mountainSign.rotation.x=0;
             mountainSign.rotation.y=-1.1;
             mountainGroup.add(mountainSign);
-            // </create Hollywood-style sign text texture>
 
 
             // Add snow cap
@@ -991,7 +973,7 @@
                 mountainGroup.add(tree);
             }
 
-            // Position the mountain in the village area
+            // Position the mountain in some nice area
             mountainGroup.position.set(-2000, 0, -800);
             
             // extra
@@ -1020,7 +1002,7 @@
             
             // Load Basecamp logo texture for the UFO body
             const ufoTextureLoader = new THREE.TextureLoader();
-            // const ufoTexture = ufoTextureLoader.load('/assets/fly_basecamp.png');
+            // const ufoTexture = ufoTextureLoader.load('/assets/logorythms.png');
             
             // Configure texture to repeat in a pattern
             // ufoTexture.wrapS = THREE.RepeatWrapping;
@@ -1057,7 +1039,7 @@
 
             // Load the globe texture for the cockpit
             const ufoGlobeTextureLoader = new THREE.TextureLoader();
-            // const ufoGlobeTexture = ufoGlobeTextureLoader.load('/assets/fly_basecamp_globe.png?3');
+            // const ufoGlobeTexture = ufoGlobeTextureLoader.load('/assets/logorythms_globe.png');
 
             // Configure the texture to wrap properly around the sphere
             // ufoGlobeTexture.wrapS = THREE.RepeatWrapping;
@@ -1156,7 +1138,7 @@
             const blimp3Group = new THREE.Group();
 
             // Load texture for blimp body
-            // const blimp3Texture = new THREE.TextureLoader().load('/assets/fly_synthflow.png');
+            // const blimp3Texture = new THREE.TextureLoader().load('/assets/logorythms.png');
             // blimp3Texture.wrapS = THREE.RepeatWrapping;
             // blimp3Texture.wrapT = THREE.RepeatWrapping;
             // blimp3Texture.repeat.set(5, 3);
@@ -1212,9 +1194,9 @@
 
             // Position the blimp high in the sky
             blimp3Group.position.set(
-                -550, // Fixed position near runway
-                500,  // Lower altitude at 100
-                -800   // Moved further in front of the runway (negative Z moves it forward)
+                -550, // Fixed position
+                500,  // altitude
+                -800   // negative Z moves it forward
             );
 
             // Rotate the blimp 90 degrees leftwards (counter-clockwise around Y axis)
