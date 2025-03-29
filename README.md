@@ -1,34 +1,34 @@
 # Vibe Jet
 
-A browser-based 3D multiplayer flying game, arcade-style. Vibe coded using Gemini 2.5 Pro experimental model.
+A browser-based 3D multiplayer flying game with arcade-style mechanics. I created this project using the Gemini 2.5 Pro experimental model through a technique called "vibe coding."
 
-Date: 2025-03-26 - 2025-03-27
+**Date:** March 26-27, 2025
 
-## Vibe coding a 3D game
+## What is Vibe Coding?
 
-Vibe coding is all the rage now since Andrej Karpathy popularized the idea and term in early 2025.
+Vibe coding—a term popularized by Andrej Karpathy in early 2025—refers to the process of developing software by collaborating with AI models. This approach has gained significant traction, especially since xAI's Grok-3 launch encouraged developers to build games using their platform.
 
-I have seen many cool vibe-coded 3D flying game and flight sim demos out there since xAI's Grok-3 launch. xAI encourage people to build games with Grok-3. Flashy demos are cherry-picked for hyping things. A little dose of healthy hype is good. You know what is better, if they can share their process of creating those games and we all can learn from it.
+While many impressive 3D flying games and flight simulators created through vibe coding have emerged, most developers showcase only the final product without revealing their development process. This project aims to fill that gap by documenting my complete journey of building an advanced 3D game with AI assistance.
 
-You are in the right place - I'm sharing everything I learn from my own vibe coding journey building an advanced 3D game.
+This project also demonstrates how vibe coding with advanced AI models can streamline game development.
 
-## Screenshot and Videos
+## Screenshots and Videos
 
-For now, check the screenshots and video in my Tweets/X Posts. I will move them here later.
+For now, check the screenshots and videos in my Twitter/X posts. I will add them directly to this document later:
 
-- Demo (video) of me playtesting a jet fighter game flight physics, visuals and multiplayer position: https://xcancel.com/cedric_chee/status/1905508001823494601
-- How I improved the game visual from boring to interesting: https://xcancel.com/cedric_chee/status/1905336549786747156
-- How I vibe-coded the base game: https://xcancel.com/cedric_chee/status/1905300591041282400
+- [Demo video of jet fighter gameplay physics, visuals and multiplayer positioning](https://xcancel.com/cedric_chee/status/1905508001823494601)
+- [Visual evolution from basic to engaging graphics](https://xcancel.com/cedric_chee/status/1905336549786747156)
+- [Initial vibe coding process for the base game](https://xcancel.com/cedric_chee/status/1905300591041282400)
 
-## Prompt
+## The Initial Prompt
 
-Actual full prompt:
+Here's the complete prompt I used to initiate the project:
 
 ```md
 Create a browser-based 3D flying game with multiplayer functionality using HTML, JavaScript, Three.js, and WebSockets. The game should be inspired by Pieter Levels' (levelsio) project at fly.pieter.com.
 
 ## Reference Materials
-These references, they represent the original inspiration:
+These references represent the original inspiration:
 - Main game website: https://fly.pieter.com
 - Twitter/X development thread starting on 2025-02-23: https://x.com/levelsio/status/1893350391158292550
 - Key feature updates on Twitter/X:
@@ -86,107 +86,124 @@ Finally, include setup instructions and explain how the multiplayer functionalit
 Feel free to suggest additional features that would enhance gameplay while maintaining performance and code quality.
 ```
 
-## Gemini 2.5 Pro Output
+## Gemini 2.5 Pro's Response
 
-Here is a sample of responses from Gemini 2.5 Pro (experimental) model. This one is the most important. It confirmed that the model is following my instructions correctly and suggested a plan of attack after it one-shotted a working game foundations, which is nothing more than a boring and basic 3D flying object game, not even a jet figther, just a cube representing the aircraft. LMAO!
+Gemini 2.5 Pro responded with a working foundation for the game and suggested a comprehensive attack plan for further development. This confirmed that the model is following my instructions correctly. Here's a sample of its initial feature recommendations:
 
 ```md
 Suggested Additional Features:
 
 1. Improved Visuals:
-
-- Load actual 3D aircraft models (e.g., GLTF format using GLTFLoader).
-- More varied building geometries and textures.
-- Ground textures, hills, or procedural terrain.
-- Particle systems for contrails, explosions (on collision/dogfighting), and engine effects.
-- Post-processing effects (bloom, motion blur).
+   - Load actual 3D aircraft models (e.g., GLTF format using GLTFLoader)
+   - More varied building geometries and textures
+   - Ground textures, hills, or procedural terrain
+   - Particle systems for contrails, explosions (on collision/dogfighting), and engine effects
+   - Post-processing effects (bloom, motion blur)
 
 2. Enhanced Physics & Controls:
-
-- More realistic lift, drag, and gravity simulation.
-- Stalling mechanics.
-- Smoother camera controls (e.g., lerping).
-- Gamepad support (Gamepad API).
+   - More realistic lift, drag, and gravity simulation
+   - Stalling mechanics
+   - Smoother camera controls (e.g., lerping)
+   - Gamepad support (Gamepad API)
 
 3. Gameplay:
-
-- Weapons and dogfighting mechanics (shooting, health, damage).
-- Objectives, missions, or collectibles.
-- Leaderboards.
-- Player customization (aircraft skins).
-- Simple chat system via WebSockets.
+   - Weapons and dogfighting mechanics (shooting, health, damage)
+   - Objectives, missions, or collectibles
+   - Leaderboards
+   - Player customization (aircraft skins)
+   - Simple chat system via WebSockets
 
 4. Multiplayer Refinements:
-
-- Client-Side Interpolation: Smooth out the movement of other players by interpolating between received network updates instead of snapping to new positions.
-- Lag Compensation: More advanced techniques if implementing shooting/combat.
-- Server-Side Validation: More robust checks on player movement/actions to prevent cheating.
-- Scalability: Consider more advanced server architectures (e.g., spatial partitioning, multiple server instances) if expecting many players.
+   - Client-Side Interpolation: Smooth out the movement of other players by interpolating between received network updates instead of snapping to new positions
+   - Lag Compensation: More advanced techniques if implementing shooting/combat
+   - Server-Side Validation: More robust checks on player movement/actions to prevent cheating
+   - Scalability: Consider more advanced server architectures (e.g., spatial partitioning, multiple server instances) if expecting many players
 
 5. UI/UX:
-
-- Minimap.
-- Clearer indicators for other players (names, distance).
-- Menus for settings, player lists, etc.
-- Loading screen.
+   - Minimap
+   - Clearer indicators for other players (names, distance)
+   - Menus for settings, player lists, etc.
+   - Loading screen
 
 6. Sound:
-
-- Engine sounds (varying with speed/boost).
-- Collision sounds.
-- Weapon firing sounds.
+   - Engine sounds (varying with speed/boost)
+   - Collision sounds
+   - Weapon firing sounds
 ```
 
-## My Vibe Coding Story and Approach
+## My Development Approach
 
-I'm documenting my process and approach here. Basically, it's vibe coding but with a different take - a mix of good software engineering practices and scientific methods.
+My vibe coding process combines good software engineering practices with scientific methods, emphasizing simplicity and transparency.
 
-**Goals:**
+### Goals
 
-- Keep everything as simple as possible (only add complexity if necessary)
-- Full visibily into the tools I'm using for software development
-(The main reason why I'm not even using Cursor/Windsurf/Claude Code. As an engineer, I prefer to build my own tools. For the sake of vibe coding, I'm not doing this, duh...)
-- Evaluates the **raw power** of Gemini 2.5 Pro capabilities, especially GDM's claim about the double digit coding score jump in public benchmarks and reasoning improvements
-- Evaluates the massive (million) input/output context length - how effective the context window utilization beyond 100k tokens, not just in theory but in practice
+- Maintain simplicity (adding complexity only when necessary)
+- Provide full visibility into the development tools and process
+- Evaluate Gemini 2.5 Pro's capabilities, especially regarding Google DeepMind's claims about improved coding benchmarks and reasoning
+- Test the practical effectiveness of the extended context window beyond 100k tokens
 
-**Tools:**
+### Tools
 
-- Model: Gemini Advanced (both web and mobile app when I'm on the move)
+- Model: Gemini Advanced (both web and mobile app)
 - IDE: VSCode
-- Version control: git
+- Version control: Git
 - Terminal
 
-**Process:**
+### Process
 
-- Prototyping style - rapid iterations
-- Copying and pasting code from Gemini Advanced into a local IDE like VScode
+I followed an iterative prototyping approach, copying and pasting code from Gemini Advanced into VSCode for testing and refinement. After Gemini generated the initial game foundation (which is nothing more than a boring and basic 3D flying object game, not even a jet figther, just a cube representing the aircraft. LMAO!), I continued with incremental improvements:
 
+1. **Enhancing visuals**: I asked Gemini to make the game visually appealing, starting with basic improvements.
 
-These are steps right after I sent my first prompt to Gemini 2.5 Pro and it one-shotted a solid flying game foundation for continuous improvement.
+I ask Gemini to improved the visuals, like "... make the game visuals appealing ...". I like to start small and implement tasks, step-by-step. But I let Gemini know my ambitious goal upfront. This is how I set up Gemini (actually Claude too) to the success path, right off the bat.
 
-I follow the above plan of attack and go on and ask Gemini to improved the visuals, like "... make the game visuals appealing ...". I like to start small and implement tasks, step-by-step. But I let Gemini know my ambitious goal upfront. This is how I set up Gemini (actually Claude too) to the success path, right off the bat.
+2. **Adding a 3D jet fighter model**: Gemini implemented this perfectly on the first try, using GLTF format.
 
-Then, I just ask Gemini to add an actual jet figther model in GLTF format. It one-shotted this task again, no bugs.
+I ask Gemini to add an actual jet figther model in GLTF format. It one-shotted this task again, no bugs.
 
+3. **Correcting orientation issues**: When the jet fighter model faced the wrong direction, Gemini helped troubleshoot the problem. This showcased its reasoning capabilities, as I could follow its thought process through "thinking tokens" that showed multiple approaches it considered.
+
+Glory details:
 The jet figther orientation is facing the wrong side of the 3D world axis. I spend an extra ~30% of my time going back and forth asking Gemini to fix or correct the code and explain the fix to me. Game development, especially 3D is not my strongest domain. This is another area where Gemini 2.5 Pro is flexing its reasoning power. It's so fascinating to see it's thinking tokens - how it digress, back-track, feeling the "aha" moment, etc. This is very useful when the final answer or solution doesn't work. I can go back and see all the proposed methods/strategies/solutions Gemini have considered. For example, in the thinking tokens, it contains a link to a copyrighted GLTF aircraft model. Gemini prefer to give solution and code that respect copyright. I'm still in control and for rapid prototyping, I just use the copyrighted version and change it later. Eventually, Gemini solved the issue.
 
-From here on, everything else on the plan is easily implemented. I go on and ask Gemini to "make the building geometries and textures more interesting.". I copy paste the code from Gemini Advanced into my local VSCode.
+(From here on, everything else on the plan is easily implemented.)
 
-I continue iterating, vibe coding. I asked it to "add ground textures or procedural terrain." As a Gemini user since 1.5, this is the first time I've ever seen how good is Gemini creative design capabilities. Gemini not only follow my instruction correctly, it goes beyond my requirements and make a ground filled with some nice grass texture, instead of a flat light green pane. Gemini also design and style it literally like hills (wavy countour with low peaks scattered all over the ground). Amazing to see the game design become lively with such change. No longer bland and boring.
+4. **Improving terrain**: When asked to "add ground textures or procedural terrain," Gemini exceeded expectations by creating a textured grass surface with undulating hills rather than a flat plane.
 
-It's so fun tweaking the game design together with Gemini. I don't have to crack my brain so hard and sweat out doing such tasks. I leave the heavy-lifting to Gemini while I focus on the idea, requirements, game design, and tasks management. This is not solely Gemini 2.5 Pro strength. In fact, every frontier LLMs can unlock and enable you to work in this way, pretty much.
+Glory details:
+I asked it to "add ground textures or procedural terrain." As a Gemini user since 1.5, this is the first time I've ever seen how good is Gemini creative design capabilities. Gemini not only follow my instruction correctly, it goes beyond my requirements and make a ground filled with some nice grass texture, instead of a flat light green pane. Gemini also design and style it literally like hills (wavy countour with low peaks scattered all over the ground). Amazing to see the game design become lively with such change. No longer bland and boring.
 
-Next, I move on to a new task. I asked Gemini to "make the urban landscape 10x better. add and Eiffel Tower, Merlion. my life depends on this.". Funnily, it refuse to comply with my demand. lol. Gemini said "... this is beyond the scope, will increase the complexities, blah, blah, ..." It suggested a different solution and explained the strategy (pros and cons) for its decision. The middle-ground solution is adding clustered of houses spread across the ground and generate four random 3D polygons as the placeholder for the iconic landscape object that emulate Eiffel Tower, The Colosseum, Golden Gate Bridge, etc. This is good enough for now.
+(It's so fun tweaking the game design together with Gemini. I don't have to crack my brain so hard and sweat out doing such tasks. I leave the heavy-lifting to Gemini while I focus on the idea, requirements, game design, and tasks management. This is not solely Gemini 2.5 Pro strength. In fact, every frontier LLMs can unlock and enable you to work in this way, pretty much.)
+
+5. **Enhancing the urban landscape**: I challenged Gemini with a request to "make the urban landscape 10x better. Add an Eiffel Tower, Merlion. My life depends on this." While it declined the exact implementation, it offered a thoughtful compromise: clusters of houses across the ground with four random 3D polygons representing iconic landmarks.
+
+Glory details:
+I asked Gemini to "make the urban landscape 10x better. add and Eiffel Tower, Merlion. my life depends on this.". Funnily, it refuse to comply with my demand. lol. Gemini said "... this is beyond the scope, will increase the complexities, blah, blah, ..." It suggested a different solution and explained the strategy (pros and cons) for its decision. The middle-ground solution is adding clustered of houses spread across the ground and generate four random 3D polygons as the placeholder for the iconic landscape object that emulate Eiffel Tower, The Colosseum, Golden Gate Bridge, etc. This is good enough for now.
 
 I can go on and on from here. I hope you understand my approach and process so far.
 
-That's my vibe coding story, although a short one. I'm continuing my game development. It's far from complete. I will share more glory details soon as I continue implementing the game features.
+(That's my vibe coding story, although a short one. I'm continuing my game development. It's far from complete. I will share more glory details soon as I continue implementing the game features.)
 
-## Gemini 2.5 Pro Reviews
+## Gemini 2.5 Pro Review
 
-- Content-window: Very good. o1 Pro is the closest I've experienced. It can maintain a single Gemini Advanced chat session for building out the full-featured game. I haven't notice any crazy hallucinations that I missed except it made up a wrong link to the Three.js texture loader libray for the specific (and older version) of Three.js that I'm using. I didn't picked this version myself. Gemini did from the start. I also checked against the usual [AI blindspots in LLMs while coding](https://ezyang.github.io/ai-blindspots/). I haven't encounter a situation where the models do not know how to stop digging when they get into trouble. Claude/DeepSeek-R1 is prone to this sometimes. The advantage of not using Cursor-like IDEs is I have good visibily what gets into the model context window. AFAIK, Cursor did some funky context processing that might affect your prompt in big way and change the course of development to fall into the pit of failure.
-- Usage limit: Initially, I want to use Google's AI Studio for branching out chat and context. I digress after seeing Logan's Tweet about the rate limit issues. So far, I haven't hit the rate limit in Gemini Advanced. If you put Cursor with Claude Sonnet 3.7 and Gemini 2.5 Pro side-by-side, I think you will feel demoralizing. Anthropic's Claude is all great except the API rate limits is not good for zoning out while coding. I think we can finally ditch Claude?
-- Gemini Thinking: Strong but fast. Time and time again, it's reasoning can surprise you (as described in my story). It can come out the best solution. What is better than best solution? A solution that doesn't need to be clever and break all good coding practices, disregard your existing codebase, etc. One example is where it code up the game engine algorithm for calculating max player speed using the thrust constant, ground size, and damping. It started out without damping and only add damping later in the development. It suggested code changes that is really neat after thinking long because of the complications involved and trying not to break the existing game logics/algorithms. This is only a few examples where I think it clearly demonstrated it's thinking power. It's great.
+Based on my experience, here's my assessment of Gemini 2.5 Pro's performance:
+
+- **Context window utilization**: Very good. o1 Pro is the closest I've experienced. It maintained a single chat session throughout the entire development process with minimal hallucinations. The only error I noticed was an incorrect link to a Three.js texture loader library for the specific (and older version) of Three.js.
+
+I also checked against the usual [AI blindspots in LLMs while coding](https://ezyang.github.io/ai-blindspots/). I haven't encounter a situation where the models do not know how to stop digging when they get into trouble. Claude/DeepSeek-R1 is prone to this sometimes.
+
+Having direct visibility into what enters the model's context window (unlike with Cursor-like IDEs) helped avoid context processing issues that could derail development.
+
+- **Usage limits**: I haven't encountered rate limit issues with Gemini Advanced, unlike some reported problems with Claude Sonnet 3.7.
+
+Glory details:
+Initially, I want to use Google's AI Studio for branching out chat and context. I digress after seeing Logan's Tweet about the rate limit issues. If you put Cursor with Claude Sonnet 3.7 and Gemini 2.5 Pro side-by-side, I think you will feel demoralizing. Anthropic's Claude is all great except the API rate limits is not good for zoning out while coding. I think we can finally ditch Claude?
+
+- **Reasoning capabilities**: Impressively strong yet efficient. Gemini Thinking consistently produced elegant solutions that respected existing code structures. For example, it implemented a sophisticated game engine algorithm for calculating maximum player speed using thrust constants, ground size, and damping factors; adding the damping component later without disrupting existing game logic.
+
+Glory detail:
+Time and time again, it's reasoning can surprise you (as described in my story). It can come out the best solution. What is better than best solution? A solution that doesn't need to be clever and break all good coding practices, disregard your existing codebase, etc. One example is where it code up the game engine algorithm for calculating max player speed using the thrust constant, ground size, and damping. It started out without damping and only add damping later in the development. It suggested code changes that is really neat after thinking long because of the complications involved and trying not to break the existing game logics/algorithms. This is only a few examples where I think it clearly demonstrated it's thinking power.
+
 
 ## Setup for Development
 
