@@ -188,6 +188,36 @@ That's my vibe coding story, although a short one. I'm continuing my game develo
 - Usage limit: Initially, I want to use Google's AI Studio for branching out chat and context. I digress after seeing Logan's Tweet about the rate limit issues. So far, I haven't hit the rate limit in Gemini Advanced. If you put Cursor with Claude Sonnet 3.7 and Gemini 2.5 Pro side-by-side, I think you will feel demoralizing. Anthropic's Claude is all great except the API rate limits is not good for zoning out while coding. I think we can finally ditch Claude?
 - Gemini Thinking: Strong but fast. Time and time again, it's reasoning can surprise you (as described in my story). It can come out the best solution. What is better than best solution? A solution that doesn't need to be clever and break all good coding practices, disregard your existing codebase, etc. One example is where it code up the game engine algorithm for calculating max player speed using the thrust constant, ground size, and damping. It started out without damping and only add damping later in the development. It suggested code changes that is really neat after thinking long because of the complications involved and trying not to break the existing game logics/algorithms. This is only a few examples where I think it clearly demonstrated it's thinking power. It's great.
 
+## Setup for Development
+
+Step 0:
+- Install Node.js (v18 and above)
+
+Clone project:
+
+```sh
+$ git clone https://github.com/cedrickchee/vibe-jet.git
+$ cd vibe-jet
+```
+
+Install NPM packages:
+
+```sh
+$ npm i
+```
+
+Start the web servers. Run:
+
+```sh
+# run the web server for serving HTML and assets (JS, CSS, images, GLTF model files)
+$ npx serve
+
+# run the WebSocket server for multiplayer
+$ node server.js
+```
+
+---
+
 ## How this project came about?
 
 I started this project in 2024 for evaluating large language models (LLMs) because the common benchmarks and public leaderboards are quickly saturated. Vibe check cannot scale - it can take a full-time job just to keep up with the fast pace of LLMs progress now. But vibe check provides important signals that common benchmarks and public leaderboards doesn't. Common benchmarks only capture half of the story. You cannot easily tell if the SoTA LLM is bechmaxxing or more than that.
