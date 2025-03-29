@@ -161,6 +161,13 @@ My vibe coding process combines good software engineering practices with scienti
 
 ### Process
 
+<p>
+   <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/vibe_coding_in_gemini_advanced_01.png" width="1000" />
+</p>
+<p>
+   <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/vibe_coding_in_gemini_advanced_02.png" width="1000" />
+</p>
+
 I followed an iterative prototyping approach, copying and pasting code from Gemini Advanced into VSCode for testing and refinement. After Gemini generated the initial game foundation (which is nothing more than a boring and basic 3D flying object game, not even a jet figther, just a cube representing the aircraft. LMAO!), I continued with incremental improvements:
 
 1. **Enhancing visuals**: I asked Gemini to make the game visually appealing, starting with basic improvements.
