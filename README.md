@@ -22,9 +22,9 @@ While many impressive 3D flying games and flight simulators created through vibe
 
 This project also demonstrates how vibe coding with advanced AI models can streamline game development.
 
-## Screenshots and Videos
+## Initial Screenshots and Videos
 
-For now, check the screenshots and videos in my Twitter/X posts. I will add them directly to this document later:
+If you are interested, you can check the screenshots and videos from the first day when I started developing the game. These are from my own Tweets/X posts:
 
 - [Demo video of jet fighter gameplay physics, visuals and multiplayer positioning](https://xcancel.com/cedric_chee/status/1905508001823494601)
 - [Visual evolution from basic to engaging graphics](https://xcancel.com/cedric_chee/status/1905336549786747156)
