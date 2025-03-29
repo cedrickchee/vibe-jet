@@ -201,6 +201,12 @@ I can go on and on from here. I hope you understand my approach and process so f
 
 (That's my vibe coding story, although a short one. I'm continuing my game development. It's far from complete. I will share more glory details soon as I continue implementing the game features.)
 
+BTW, I suggest you to also look at my git commits history. Each commit is literally a prompt and its output. You can deduce from it how the process evolve from the start until the very end. You can see which area Gemini 2.5 Pro struggle the most. You can even switch to the initial commit to see how the one-shotted base game looks like if you want.
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/git_commit_history_each_prompt.png" width="1000" />
+</p>
+
 ## Gemini 2.5 Pro Review
 
 Based on my experience, here's my assessment of Gemini 2.5 Pro's performance:
