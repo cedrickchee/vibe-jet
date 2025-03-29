@@ -10,6 +10,10 @@ A browser-based 3D multiplayer flying game with arcade-style mechanics. I create
 
 ## What is Vibe Coding?
 
+<p align="center">
+    <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/vibe_coding_in_gemini_advanced.png" width="1000" />
+</p>
+
 Vibe coding—a term popularized by Andrej Karpathy in early 2025—refers to the process of developing software by collaborating with AI models. This approach has gained significant traction, especially since xAI's Grok-3 launch encouraged developers to build games using their platform.
 
 While many impressive 3D flying games and flight simulators created through vibe coding have emerged, most developers showcase only the final product without revealing their development process. This project aims to fill that gap by documenting my complete journey of building an advanced 3D game with AI assistance.
