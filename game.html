@@ -59,8 +59,9 @@
         const MIN_BUILDING_HEIGHT = 50;
         const STAR_COUNT = 5000;
         const DAY_NIGHT_CYCLE_MINUTES = 5; // Duration of a full day/night cycle
+        const ASSETS_DIR = 'assets/';
         // const MODEL_URL = 'https://unpkg.com/three@0.162.0/examples/models/gltf/Flamingo.glb'; // <-- REPLACE WITH YOUR AIRCRAFT MODEL URL (.glb/.gltf)
-        const MODEL_URL = 'shenyang_j-11.glb'; // <-- Use local filename
+        const MODEL_URL = `${ASSETS_DIR}/shenyang_j-11.glb`; // <-- Use local filename
         const MODEL_SCALE = 0.8; // <-- ADJUST THIS scale to fit your model size
         const OTHER_PLAYER_COLOR = 0x00aaff; // A blue tint for other players
         // --- Terrain & Tree Constants ---
@@ -78,7 +79,7 @@
         const CLOUD_ALTITUDE_MAX = 1200; // Maximum height for clouds
         const CLOUD_AREA_XZ = GROUND_SIZE * 1.5; // How far clouds spread horizontally
         const CLOUD_DRIFT_SPEED = 5.0; // How fast clouds move horizontally
-        const CLOUD_TEXTURE_URL = 'cloud10.png'; // Example texture
+        const CLOUD_TEXTURE_URL = `${ASSETS_DIR}/cloud10.png`; // Example texture
         // --- Road Constants ---
         const ROAD_COUNT = 5; // Number of road segments
         const ROAD_WIDTH = 30; // Width of the roads
@@ -86,7 +87,7 @@
         const ROAD_MAX_LENGTH = 2000;
         const ROAD_SEGMENT_LENGTH = 10; // How finely to subdivide the road mesh along its length
         const ROAD_THICKNESS_OFFSET = 0.2; // Place roads slightly above terrain
-        const ROAD_TEXTURE_URL = 'road.jpg'; // Example texture
+        const ROAD_TEXTURE_URL = `${ASSETS_DIR}/road.jpg`; // Example texture
 
         // --- Global Variables ---
         let scene, camera, renderer, clock, skyLight, sunLight;
