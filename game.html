@@ -1132,7 +1132,7 @@
             console.log("UFO created.");
         }
 
-        function Blimp() {
+        function Blimp(mainBodyColor) {
             console.log('Creating blimp ...');
 
             // Create blimp group
@@ -1149,7 +1149,7 @@
             blimp3MainBodyGeometry.scale(1, 1, 2.7); // Changed from 1.8 to 2.7 (1.5x longer)
             const blimp3MainBodyMaterial = new THREE.MeshPhongMaterial({ 
                 // map: blimp3Texture,
-                color: 0xFFFF00
+                color: mainBodyColor
             });
             const blimp3MainBody = new THREE.Mesh(blimp3MainBodyGeometry, blimp3MainBodyMaterial);
             blimp3Group.add(blimp3MainBody);
@@ -1192,23 +1192,36 @@
             blimp3HorizontalFin.position.set(0, 0, 50); // Changed from 35 to 50
             blimp3HorizontalFin.rotation.z = Math.PI / 2;
             blimp3Group.add(blimp3HorizontalFin);
-
-            // Position the blimp high in the sky
-            blimp3Group.position.set(
-                -550, // Fixed position
-                500,  // altitude
-                -800   // negative Z moves it forward
-            );
-
-            // Rotate the blimp 90 degrees leftwards (counter-clockwise around Y axis)
-            blimp3Group.rotation.y=-1.5;;
             
             return blimp3Group;
         }
 
         function createBlimp() {
-            const blimp3Group = Blimp();
+            // 
+            // First blimp
+            // 
+            const blimp3Group = Blimp(0xFFFF00);
+            // Position the blimp high in the sky
+            blimp3Group.position.set(-550, 500, -800); // Fixed position, altitude, negative Z moves it forward
+            // Rotate the blimp 90 degrees leftwards (counter-clockwise around Y axis)
+            blimp3Group.rotation.y=-1.5;
             scene.add(blimp3Group);
+
+            // 
+            // Second blimp
+            // 
+            const blimp3Group2 = Blimp(0xFF0000);
+            blimp3Group2.position.set(1000, 1000, -2000);
+            blimp3Group2.rotation.y=1.5;
+            scene.add(blimp3Group2);
+
+            // 
+            // Third blimp
+            // 
+            const blimp3Group3 = Blimp(0xFF007F);
+            blimp3Group3.position.set(500, 600, 1000);
+            blimp3Group3.rotation.y=2.0;
+            scene.add(blimp3Group3);
 
             console.log('Blimp created');
         }
