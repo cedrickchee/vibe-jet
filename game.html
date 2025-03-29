@@ -706,7 +706,7 @@
             // Robot body
             const bodyGeometry = new THREE.BoxGeometry(10, 14, 6);
             const bodyMaterial = new THREE.MeshPhongMaterial({
-                color: 0x3498db, // Blue color
+                color: 0xb894db, // Blue color
                 shininess: 70,
                 fog: false
             });
@@ -716,7 +716,7 @@
             // Robot head
             const headGeometry = new THREE.BoxGeometry(8, 6, 6);
             const headMaterial = new THREE.MeshPhongMaterial({
-                color: 0x2980b9, // Darker blue
+                color: 0x935dc9, // Darker blue
                 shininess: 70,
                 fog: false
             });
@@ -729,7 +729,7 @@
             const eyeMaterial = new THREE.MeshPhongMaterial({
                 color: 0xff0000, // Red eyes
                 emissive: 0xff0000,
-                emissiveIntensity: 0.5,
+                emissiveIntensity: 0.8,
                 fog: false
             });
             
@@ -746,7 +746,7 @@
             // Robot arms
             const armGeometry = new THREE.BoxGeometry(2, 8, 2);
             const armMaterial = new THREE.MeshPhongMaterial({
-                color: 0x3498db,
+                color: 0xb894db,
                 shininess: 70,
                 fog: false
             });
@@ -764,7 +764,7 @@
             // Robot legs
             const legGeometry = new THREE.BoxGeometry(3, 8, 3);
             const legMaterial = new THREE.MeshPhongMaterial({
-                color: 0x2980b9,
+                color: 0x935dc9,
                 shininess: 70,
                 fog: false
             });
@@ -786,7 +786,7 @@
             bannerCanvas.height = 128;
             
             // Set banner background
-            bannerContext.fillStyle = '#2980b9'; // Blue background
+            bannerContext.fillStyle = '#935dc9'; // Blue background
             bannerContext.fillRect(0, 0, bannerCanvas.width, bannerCanvas.height);
             
             // Add text
