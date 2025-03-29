@@ -4,6 +4,8 @@
     <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/game-visual.png" width="1000" />
 </p>
 
+https://github.com/user-attachments/assets/e072605b-753a-49b8-b5ee-1544e1a1e656
+
 A browser-based 3D multiplayer flying game with arcade-style mechanics. I created this project using the Gemini 2.5 Pro experimental model through a technique called "vibe coding."
 
 **Date:** March 26-27, 2025
