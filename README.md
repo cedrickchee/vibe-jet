@@ -137,7 +137,7 @@ Suggested Additional Features:
 - Weapon firing sounds.
 ```
 
-## Vibe Coding
+## My Vibe Coding Story and Approach
 
 I'm documenting my process and approach here. Basically, it's vibe coding but with a different take - a mix of good software engineering practices and scientific methods.
 
@@ -221,3 +221,7 @@ $ node server.js
 ## How this project came about?
 
 I started this project in 2024 for evaluating large language models (LLMs) because the common benchmarks and public leaderboards are quickly saturated. Vibe check cannot scale - it can take a full-time job just to keep up with the fast pace of LLMs progress now. But vibe check provides important signals that common benchmarks and public leaderboards doesn't. Common benchmarks only capture half of the story. You cannot easily tell if the SoTA LLM is bechmaxxing or more than that.
+
+The idea originated from [Minecraft Benchmark](https://x.com/_mcbench).
+
+Fast-forward, this project is my current go-to for vibe checking and eval latest LLMs.
