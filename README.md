@@ -217,6 +217,12 @@ I also checked against the usual [AI blindspots in LLMs while coding](https://ez
 
 Having direct visibility into what enters the model's context window (unlike with Cursor-like IDEs) helped avoid context processing issues that could derail development.
 
+Another great example claiming Gemini 2.5 Pro long context is a breakthrough:
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/cedrickchee/vibe-jet/main/docs/screenshots/long_context_breakthrough.png" width="1000" />
+</p>
+
 - **Usage limits**: I haven't encountered rate limit issues with Gemini Advanced, unlike some reported problems with Claude Sonnet 3.7.
 
 Glory details:
