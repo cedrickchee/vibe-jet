@@ -43,7 +43,7 @@
 
         // --- Configuration ---
         const WEBSOCKET_URL = 'ws://localhost:8080'; // Adjust if your server is elsewhere
-        const PLAYER_SPEED = 50.0; // Base speed units/sec
+        const PLAYER_SPEED = 120.0; // Base speed units/sec
         const AFTERBURNER_MULTIPLIER = 3.0;
         const ROLL_SPEED = Math.PI * 1.0; // Radians per second
         const PITCH_SPEED = Math.PI * 0.8; // Radians per second
@@ -52,13 +52,13 @@
         const CAMERA_BASE_FOV = 75;
         const CAMERA_MAX_FOV_BOOST = 25; // Additional FOV at max speed boost
         const UPDATE_INTERVAL_MS = 100; // Send updates every 100ms (10 Hz)
-        const GROUND_SIZE = 5000;
+        const GROUND_SIZE = 8000;
         const GROUND_SEGMENTS = 100; // Segments for ground geometry/hills
         const BUILDING_COUNT = 200;
         const MAX_BUILDING_HEIGHT = 400;
         const MIN_BUILDING_HEIGHT = 50;
         const STAR_COUNT = 5000;
-        const DAY_NIGHT_CYCLE_MINUTES = 5; // Duration of a full day/night cycle
+        const DAY_NIGHT_CYCLE_MINUTES = 10; // Duration of a full day/night cycle
         const ASSETS_DIR = 'assets/';
         // const MODEL_URL = 'https://unpkg.com/three@0.162.0/examples/models/gltf/Flamingo.glb'; // <-- REPLACE WITH YOUR AIRCRAFT MODEL URL (.glb/.gltf)
         const MODEL_URL = `${ASSETS_DIR}/shenyang_j-11.glb`; // <-- Use local filename
@@ -68,12 +68,12 @@
         const TERRAIN_AMPLITUDE = 50; // Max height of hills (Adjusted from 150)
         const TERRAIN_FREQUENCY = (8 * Math.PI * 2) / GROUND_SIZE; // How wavy. Higher value = more, smaller hills. Try a value relative to the size, aiming for ~5-10 waves across.
         const TREE_COUNT = 7000; // Number of trees (adjust based on performance)
-        const TRUNK_HEIGHT = 8;
-        const TRUNK_RADIUS = 0.5;
-        const FOLIAGE_HEIGHT = 10;
-        const FOLIAGE_RADIUS = 4;
+        const TRUNK_HEIGHT = 10;
+        const TRUNK_RADIUS = 2.0;
+        const FOLIAGE_HEIGHT = 20;
+        const FOLIAGE_RADIUS = 8;
         // --- Cloud Constants ---
-        const CLOUD_COUNT = 100; // Number of cloud particles
+        const CLOUD_COUNT = 200; // Number of cloud particles
         const CLOUD_SIZE = 350; // Base size of each cloud particle
         const CLOUD_ALTITUDE_MIN = 600; // Minimum height for clouds
         const CLOUD_ALTITUDE_MAX = 1200; // Maximum height for clouds
