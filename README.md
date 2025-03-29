@@ -252,3 +252,7 @@ I started this project in 2024 for evaluating large language models (LLMs) becau
 The idea originated from [Minecraft Benchmark](https://x.com/_mcbench).
 
 Fast-forward, this project is my current go-to for vibe checking and eval latest LLMs.
+
+## Acknowledgements
+
+- The robot, blimp, castle, and UFO design and geometry belongs to levelsio.
