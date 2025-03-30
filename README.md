@@ -275,3 +275,4 @@ Fast-forward, this project is my current go-to for vibe checking and eval latest
 ## Acknowledgements
 
 - The robot, blimp, castle, and UFO design and geometry belongs to levelsio.
+- The aircraft model belongs to [Rhine_Lab_Muelsyse](https://sketchfab.com/3d-models/shenyang-j-11-f3b0a285198a4523b96b9ac372e18865)
