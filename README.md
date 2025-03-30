@@ -64,7 +64,7 @@ These references represent the original inspiration:
    - Dynamic lighting and shadows
 
 3. Multiplayer functionality
-   - WebSocket server (Python implementation)
+   - WebSocket server (Node.js implementation)
    - Player position broadcasting (10 updates per second)
    - Basic security measures against spammers/hackers
    - Simple player identification
