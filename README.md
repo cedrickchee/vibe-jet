@@ -235,6 +235,12 @@ Time and time again, it's reasoning can surprise you (as described in my story).
 
 - **Personality**: It feels more like a co-developer than other models. It is far more collaborative, asking clarifying questions throughout. Among other models, Claude Sonnet 3.7 comes the closest. It also pushes back on subjective decisions. So refreshing to have it suggest alternatives instead of being a sycophant, unlike other AI models. Its generated code comments are also helpful.
 
+## Gemini 2.5 Pro Compare to Other AI Models
+
+### Gemini 2.5 Pro vs. o1 Pro
+
+Both are strong. Gemini is faster, offers more context, and takes a "modern" approach to problem-solving, but o1-pro still wins on solution depth. When choosing which model I prefer working with, I'd go with Gemini. It's not just the speed; it's also the way Gemini interacts with users. It has the same approachable tone that people appreciate in Claude Sonnet. I'll likely use both, Gemini for speed, o1-pro for tough problems. Excited to have a real challenger!
+
 ## Setup for Development
 
 Step 0:
