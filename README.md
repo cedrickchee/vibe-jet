@@ -233,6 +233,7 @@ Initially, I want to use Google's AI Studio for branching out chat and context. 
 Glory detail:
 Time and time again, it's reasoning can surprise you (as described in my story). It can come out the best solution. What is better than best solution? A solution that doesn't need to be clever and break all good coding practices, disregard your existing codebase, etc. One example is where it code up the game engine algorithm for calculating max player speed using the thrust constant, ground size, and damping. It started out without damping and only add damping later in the development. It suggested code changes that is really neat after thinking long because of the complications involved and trying not to break the existing game logics/algorithms. This is only a few examples where I think it clearly demonstrated it's thinking power.
 
+- **Personality**: It feels more like a co-developer than other models. It is far more collaborative, asking clarifying questions throughout. Among other models, Claude Sonnet 3.7 comes the closest. It also pushes back on subjective decisions. So refreshing to have it suggest alternatives instead of being a sycophant, unlike other AI models. Its generated code comments are also helpful.
 
 ## Setup for Development
 
