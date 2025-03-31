@@ -279,6 +279,8 @@ $ node server.js
    - [My Tweet/X post](https://xcancel.com/cedric_chee/status/1906571695059763535): Gemini 2.5 Pro with Canvas lets you create prototypes faster than ever, like this game I cranked out in hours with only 50 prompts! No more copy pasting code.
    - You can try and play the game in your web browser or see the code here: https://g.co/gemini/share/9ecf4a29fdd3 (Note that mobile browser support is not working well now. It lacks full-screen. I don't have the time to fix this yet.)
    - The 50 prompts from 1 big Gemini Advanced chat, in full glory: https://gist.github.com/cedrickchee/cfeb6497ac997f211fb50d6d428e0ee3
+- Just found this blog post today: https://andrewchen.substack.com/p/predictionsthoughts-on-vibe-coding
+Apparently, someone vibe coded flight sim from **several thousand prompts** and shared their notes on their method. Fascinating to read.
 
 ---
 
