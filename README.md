@@ -241,9 +241,26 @@ Time and time again, it's reasoning can surprise you (as described in my story).
 
 Both are strong. Gemini is faster, offers more context, and takes a "modern" approach to problem-solving, but o1-pro still wins on solution depth. When choosing which model I prefer working with, I'd go with Gemini. It's not just the speed; it's also the way Gemini interacts with users. It has the same approachable tone that people appreciate in Claude Sonnet. I'll likely use both, Gemini for speed, o1-pro for tough problems. Excited to have a real challenger!
 
-### Gemini 2.5 Pro vs. Claude Sonnet 3.7 Extended Thinking
+### Gemini 2.5 Pro vs Claude 3.5/3.7 Sonnet
 
-(coming soon)
+| Feature | Gemini 2.5 Pro | Claude 3.5 Sonnet | Claude 3.7 Sonnet |
+|---------|---------------|-------------------|-------------------|
+| **Context Management** | Excellent; indicates when context window is filling (if using Cursor) | Good | Poor; completely forgets previous conversation when context is full |
+| **Conversation Awareness** | Unique ability to suggest when to end unproductive conversations | Limited | Limited |
+| **Instruction Following** | Average | Excellent | Poor; struggles to follow instructions consistently |
+| **Code Generation** | Excellent | Good | Good |
+| **Code Quality** | Can be complex to make sense of | Good | simpler and easier to understand |
+| **Tool Usage** | Poor | Good | Good; ahead of Gemini |
+| **Rate Limits** | Low for now | Average | Bad |
+| **Advanced Reasoning** | Excellent; on par with o1-Pro and Claude 3.7 Thinking | Good | Excellent with Thinking mode |
+| **Long Discussion Coherence** | Superior recall and coherence | Good | Good |
+| **Tone** | Dry, clinical | More personable | More personable |
+| **Personality** | Collaborator | Collaborator | Collaborator |
+| **Complex Code Analysis** | Superior at threading, logical errors | Limited | Better than 3.5 but still lacks Gemini's capabilities |
+| **Web Apps/UI Design** | Good | Good | Excellent; generally considered better than Gemini |
+| **Overall Assessment** | Feels like the better core model despite tooling limitations | Good balance of capabilities | Remarkable progress but inconsistent performance |
+
+[Gemini 2.5 Pro vs. Claude 3.7 Sonnet: Coding Comparison](https://composio.dev/blog/gemini-2-5-pro-vs-claude-3-7-sonnet-coding-comparison/) (Mar 2024) - A good blog post, eval methods are quite rigorous and fair. A total of 4 realistic coding problems being tested, mainly on WebDev, animation and a tricky LeetCode question.
 
 ## Setup for Development
 
