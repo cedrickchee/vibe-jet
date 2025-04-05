@@ -22,6 +22,17 @@ While many impressive 3D flying games and flight simulators created through vibe
 
 This project also demonstrates how vibe coding with advanced AI models can streamline game development.
 
+## Gemini 2.5 Pro
+
+The Gemini family of models offers several distinctive capabilities:
+- Long context length — Gemini 2.5 Pro supports up to 1 million tokens.
+- Video analysis — YouTube video link support in Google AI Studio and the Gemini API. You can summarize, extract a specific set of structured outputs, and creating insights from analyzing multiple videos together.
+- Audio input processing — a feature rarely found in competing models, especially with this token length and timestamp accuracy.
+- Native image generation and editing capabilities.
+- Bounding box detection for image inputs.
+
+My initial experiments with Gemini 2.5 Pro reveal it to be a remarkably strong new model, particularly good at code generation.
+
 ## Initial Screenshots and Videos
 
 If you are interested, you can check the screenshots and videos from the first day when I started developing the game. These are from my own Tweets/X posts:
@@ -235,6 +246,8 @@ Time and time again, it's reasoning can surprise you (as described in my story).
 
 - **Personality**: It feels more like a co-developer than other models. It is far more collaborative, asking clarifying questions throughout. Among other models, Claude Sonnet 3.7 comes the closest. It also pushes back on subjective decisions. So refreshing to have it suggest alternatives instead of being a sycophant, unlike other AI models. Its generated code comments are also helpful.
 
+I plan to explore more of what it can do.
+
 ## Gemini 2.5 Pro Compare to Other AI Models
 
 ### Gemini 2.5 Pro vs. o1 Pro
@@ -242,6 +255,8 @@ Time and time again, it's reasoning can surprise you (as described in my story).
 Both are strong. Gemini is faster, offers more context, and takes a "modern" approach to problem-solving, but o1-pro still wins on solution depth. When choosing which model I prefer working with, I'd go with Gemini. It's not just the speed; it's also the way Gemini interacts with users. It has the same approachable tone that people appreciate in Claude Sonnet. I'll likely use both, Gemini for speed, o1-pro for tough problems. Excited to have a real challenger!
 
 ### Gemini 2.5 Pro vs Claude 3.5/3.7 Sonnet
+
+The results I've observed are comparable to those from Claude 3.7 Sonnet, my previous preferred model. Gemini 2.5 Pro's enhanced reasoning mode and long context window appear to provide advantages.
 
 | Feature | Gemini 2.5 Pro | Claude 3.5 Sonnet | Claude 3.7 Sonnet |
 |---------|---------------|-------------------|-------------------|
