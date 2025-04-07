@@ -275,7 +275,7 @@ The results I've observed are comparable to those from Claude 3.7 Sonnet, my pre
 | **Web Apps/UI Design** | Good | Good | Excellent; generally considered better than Gemini |
 | **Overall Assessment** | Feels like the better core model despite tooling limitations | Good balance of capabilities | Remarkable progress but inconsistent performance |
 
-[Gemini 2.5 Pro vs. Claude 3.7 Sonnet: Coding Comparison](https://composio.dev/blog/gemini-2-5-pro-vs-claude-3-7-sonnet-coding-comparison/) (Mar 2024) - A good blog post, eval methods are quite rigorous and fair. A total of 4 realistic coding problems being tested, mainly on WebDev, animation and a tricky LeetCode question.
+[Gemini 2.5 Pro vs. Claude 3.7 Sonnet: Coding Comparison](https://composio.dev/blog/gemini-2-5-pro-vs-claude-3-7-sonnet-coding-comparison/) (Mar 2025) - A good blog post, eval methods are quite rigorous and fair. A total of 4 realistic coding problems being tested, mainly on WebDev, animation and a tricky LeetCode question.
 
 ## Setup for Development
 
